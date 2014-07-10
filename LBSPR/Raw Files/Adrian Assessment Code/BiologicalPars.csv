@@ -1,0 +1,14 @@
+Species,GrassRockfish,Comments
+Linf,50.2,
+LinfCV,0.1,
+M,0.15,natural mortality
+k,0.09,von Bert k
+t0,0,t0 set to zero - not sensitive to t0 but makes comparisions easier
+MatType,Logistic,Logistic curve for maturity - only one accepted at this stage
+MatL50,27.5,maturity parameter
+MatL95,34,maturity parameter
+SelL50,27.5,selectivity uses same function as maturity and set equal to maturity 
+SelL95,34,
+Walpha,0.00008,made up value - not important as just scaling value
+Wbeta,3,set equal to 3 - close to reality
+Fpar,0.3,Fishing mortality

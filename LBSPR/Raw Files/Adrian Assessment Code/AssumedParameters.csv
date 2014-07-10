@@ -1,0 +1,11 @@
+Species,GrassRockfish,Comments
+assumed_Linf,50.2,Species Linf
+assumed_MK,1.666,Natural mortality / von bert K
+genM,0.1,fixed at 0.1
+genLinf,1,fixed at 1
+genLinfCV,0.1,species LinfCV
+gent0,0,fixed at 0 
+assMatType,Logistic,
+assMatL50,27.5,species L50
+assMatL95,34,species L95
+assW.beta,3,weight coefficient

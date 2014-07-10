@@ -1,0 +1,5 @@
+"","Year","Method","Value","LowerCI","UpperCI","SD","Metric","Flag"
+"1",2012,"LBAR",6.18,2.43,4.5,0.3,"FvFmsy","None"
+"2",2012,"CatchCurve",5.17,0.95,6.77,1.73,"FvFmsy","None"
+"3",2012,"DensityRatio",2.05,0.57,11.86,2.38,"N/K","Biomass"
+"4",2012,"LBSPR",0.2,0.18,0.23,0.01,"SPR","ModelFailed is FALSE"
