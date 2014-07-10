@@ -2,7 +2,7 @@ rm(list = ls())
 ###### Data Poor Stock Assessment (DPSA)Module ######
 
 ### Setup Working Environment ###
-setwd("/Users/danovando/Desktop/Bren/SFG Work/DPSA")
+# setwd("/Users/danovando/Desktop/Bren/SFG Work/DPSA")
 
 library(lattice)
 source("AssessmentModules.R") #Pull in assessment modules
@@ -57,7 +57,7 @@ for (a in 1:length(Assessments)) #Loop over possible assessments, store in Asses
 	if (Assessments[a]=='LBAR') #Run LBAR assessment
 	{
 
-		Temp<- LBAR(LengthData,1,0.2,0,2007,NA,100,1,1,NA)$Output		
+		Temp<- LBAR(LengthData,1,0.2,0,2007,NA,10,1,1,NA)$Output		
 		# Temp2<- OldLBAR(LengthData,1,0.2,0,100,1,1)$Output
 		
 		DataLength<- dim(Temp)[1]
@@ -70,7 +70,7 @@ for (a in 1:length(Assessments)) #Loop over possible assessments, store in Asses
 	if (Assessments[a]=='CatchCurve') #Run Catch Curve analysis
 	{
 
-		Temp<- CatchCurve(LengthData,'AgeBased',1,2007,NA,1,100,1,1,1)$Output
+		Temp<- CatchCurve(LengthData,'AgeBased',1,2007,NA,1,10,1,1,1)$Output
 
 		DataLength<- dim(Temp)[1]
 

@@ -1,4 +1,4 @@
  index   name    value      std.dev
-     1   SelL50  6.4790e-01 1.2204e+00
-     2   Delta   3.2892e-03 5.9260e-01
-     3   logFM  -5.1425e-02 2.4252e-01
+     1   SelL50  6.4708e-01 3.9341e-03
+     2   Delta   9.7092e-03 2.0192e-03
+     3   logFM   1.3361e-02 2.5611e-01
