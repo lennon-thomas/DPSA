@@ -10,11 +10,11 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 ### Pull in Assessment Data ###
 
-  Country<- 'Ecuador'
+  Country<- 'Indonesia'
 
-  Site<- 'Galapagos_Islands'
+  Site<- 'Teluk'
 
-  Species<- 'Spiny_Lobster_MaleRealExtrapTotal'
+  Species<- 'Lutjanus_Gibbus'
 
 Fishery <- paste(Country,Site,Species,sep='-')
 
@@ -47,7 +47,7 @@ colnames(AssessmentResults)<- c('Year','Method','SampleSize','Value','LowerCI','
 AssessmentResults$Year<- as.numeric(AssessmentResults$Year)
 
 Count<-0
-Fish$LHITol<- 0.6
+Fish$LHITol<- 0.99
 
 # LengthData<- LengthData[LengthData$Year>2006,]
 
@@ -82,7 +82,7 @@ for (a in 1:length(Assessments)) #Loop over possible assessments, store in Asses
 
 	if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
 	{
-		Temp<- DensityRatio(DensityData,1,0.2,'Biomass',1000,1)$Output
+		Temp<- DensityRatio(DensityData,1,0.2,'Biomass',100,1)$Output
 				
 		DataLength<- dim(Temp)[1]
 
