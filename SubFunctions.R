@@ -1,206 +1,169 @@
 
 PlotLengthData<- function(LengthDat)
 {
-	  # LengthDat<- LengthData
-	
-	Bins<- seq(0,Fish$Linf*1.6,by=1)
-	
-	Years<- sort(unique(LengthDat$Year))
-	
-	MPAPlots<- matrix(1:(2*length(Years)),nrow=length(Years),ncol=2,byrow=T)
+#   LengthDat<- LengthData
+  
+  LengthDat$MPA<- as.factor(LengthData$MPA)
 
-	AllPlots<- matrix(1:(length(Years)),nrow=length(Years),ncol=1,byrow=T)
-
-
-	
-	Colors<- terrain.colors(2*length(Years))[1:length(Years)]
-
-    pdf(file=paste(FigureFolder,' Length Frequency Data by MPA.pdf',sep=''),width=20,height=10*length(Years))
-    
-	MPALayout<- layout(mat=MPAPlots)
-	
-	for (y in 1:length(Years))
-	{
-		Where<- LengthDat$Year==Years[y]
-		
-		YearDat<- LengthDat[Where,]
-		
-		TempCol<- Colors[y]
-		
-		for (m in 0:1)
-		{
-			WhereZone<- YearDat$MPA==m
-			
-			ZoneDat<- YearDat[WhereZone,]
-
-			ZoneLength<-ZoneDat$Length[is.na(ZoneDat$Length)==F] 
-			
-			hist(ZoneDat$Length,xlab='Length (cm)',main=paste(Years[y],': MPA=',m,': Sample Size=',length(ZoneLength)) ,col=TempCol,breaks=Bins)
-			abline(v=Fish$Mat50,lwd=2)
-						
-		}
-		
-	}
-	
-	dev.off()
-	
-  pdf(file=paste(FigureFolder,' Length Frequency Data.pdf',sep=''),width=20,height=10*length(Years))
-    
-	AllLayount<- layout(mat=AllPlots)
-	
-	for (y in 1:length(Years))
-	{
-		Where<- LengthDat$Year==Years[y]
-		
-		YearDat<- LengthDat[Where,]
-		
-		TempCol<- Colors[y]
-		
-		hist(YearDat$Length,xlab='Length (cm)',main=paste(Years[y],': Sample Size=',length(YearDat$Length)),col=TempCol,breaks=Bins)			
-					abline(v=Fish$Mat50,lwd=2)
-
-	}
-	
-	dev.off()
-	
-	
+  MaxYear<- max(LengthDat$Year,na.rm=T)
+  
+  LengthDat$Year<- as.factor(LengthData$Year)
+  
+  levels(LengthDat$MPA)<- c('Fished','MPA')
+  
+  pdf(file=paste(FigureFolder,AssessmentName,' Length Data Analysis.pdf',sep=''))
+  
+  print(densityplot(~Length | Year,groups=MPA,data=LengthDat,auto.key=T,type='count',lwd=2,panel=function(x,...)
+    {
+    panel.densityplot(x,...)
+    panel.abline(v=Fish$Mat50)
+    } 
+  ))
+  
+  print(densityplot(~Length | Year,groups=MPA,data=LengthDat[LengthDat$Year==MaxYear,],auto.key=T,type='count',lwd=2,panel=function(x,...)
+  {
+    panel.densityplot(x,...)
+    panel.abline(v=Fish$Mat50)
+  } 
+  ))
+  
+  print(bwplot(Length ~MPA | Year,data=LengthDat,auto.key=T,type='count'))
+  
+  LengthSummary<- ddply(LengthDat,c('Year','MPA'),summarize,SampleSize=length(Length))
+  
+  print(dotplot(SampleSize ~MPA | Year,data=LengthSummary,xlab='Sample Size',cex=2))
+  
+  dev.off()
+ 
+  write.csv(file=paste(ResultFolder,AssessmentName,' Length Data Summary.csv',sep=''),LengthSummary)
+  
+  
 }
 
-PlotDensityData<- function(Dat)
+PlotDensityData<- function(DensityDat)
 {
-	# Dat<- DensityData
-	
-	Years<- sort(unique(Dat$Year))
-	
-	AllPlots<- matrix(1:(length(Years)),nrow=length(Years),ncol=1,byrow=T)
+#   DensityDat<- DensityData
+  
+  DensityDat$MPA<- as.factor(DensityDat$MPA)
+  
+  MaxYear<- max(DensityDat$Year,na.rm=T)
+  
+  DensityDat$Year<- as.factor(DensityDat$Year)
+  
+  levels(DensityDat$MPA)<- c('Fished','MPA')
+  
+  DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count/SampleArea),BiomassDensity=sum(Biomass/SampleArea))
+  
+  write.csv(file=paste(ResultFolder,AssessmentName,' Density Data Summary.csv',sep=''),DensitySummary)
+  
+  pdf(file=paste(FigureFolder,AssessmentName,' Density Data Analysis.pdf',sep=''))
+  
+  print(barchart(NumberDensity~MPA | Year,data=DensitySummary,ylab='Numbers/Area',col=c('firebrick1','skyblue3')))
 
-	Colors<- terrain.colors(2*length(Years))[1:length(Years)]
-
-    pdf(file=paste(FigureFolder,' Density Data by MPA.pdf',sep=''),width=10,height=10)
-    
-	AllLayout<- layout(mat=AllPlots)
-	
-	for (y in 1:length(Years))
-	{
-		Where<- Dat$Year==Years[y]
-		
-		YearDat<- Dat[Where,]
-		
-		TempCol<- Colors[y]
-		
-		MPAArea<- sum(YearDat$SampleArea[YearDat$MPA==1])
-
-		FishedArea<- sum(YearDat$SampleArea[YearDat$MPA==0])
-
-		
-		Density<- CalculateDensity(YearDat,Years[y],1,'Biomass')
-		
-        barplot(as.matrix(Density[2:3]),main=paste(Years[y],': MPA Sample Area = ',MPAArea,': Fished Sample Area =',FishedArea,sep=''),col=TempCol,ylab='Density')
-	}
-	
-	dev.off()
-	
- }
+  print(barchart(BiomassDensity~MPA | Year,data=DensitySummary,ylab='Biomass/Area',col=c('firebrick1','skyblue3')))
+  
+ dev.off()
+}
 
 PlotCatchData<- function(CatchDat)
 {
-
-	library(zoo)
-	# CatchDat=CatchData
-		
-	InterpCatch<- na.approx(CatchDat$Catch)
-			
-	InterpMarker=as.numeric(is.na(CatchDat$Catch))
-				
-	PointStyle=21*InterpMarker
-	PointStyle[PointStyle==0]<- 16
-		
-	  pdf(file=paste(FigureFolder,' Catch History.pdf',sep=''),width=7,height=4) 
-	  par(mai=c(1,1,1,1.5))
-	  Month<- CatchDat$Month
-	  Month[Month==-999]<- 'Total'
-	  TimeName=paste(CatchDat$Year,Month,sep='-')
-	  plot(InterpCatch,xaxt='n',pch=PointStyle,col=InterpMarker+1,ylab=CatchDat$Units[1],xlab=NA,cex=1.2,pty='m',bty='n')
-	  axis(1,at=1:length(TimeName),labels=TimeName,las=0)
-	  legend('right',pch=c(16,21),col=c(1,2),legend=c('Real','Interpolated'),xpd=T,bty='n',inset=-.3)
-	  dev.off()
-
+  
+  library(zoo)
+  # CatchDat=CatchData
+  
+  InterpCatch<- na.approx(CatchDat$Catch)
+  
+  InterpMarker=as.numeric(is.na(CatchDat$Catch))
+  
+  PointStyle=21*InterpMarker
+  PointStyle[PointStyle==0]<- 16
+  
+  pdf(file=paste(FigureFolder,' Catch History.pdf',sep=''),width=7,height=4) 
+  par(mai=c(1,1,1,1.5))
+  Month<- CatchDat$Month
+  Month[Month==-999]<- 'Total'
+  TimeName=paste(CatchDat$Year,Month,sep='-')
+  plot(InterpCatch,xaxt='n',pch=PointStyle,col=InterpMarker+1,ylab=CatchDat$Units[1],xlab=NA,cex=1.2,pty='m',bty='n')
+  axis(1,at=1:length(TimeName),labels=TimeName,las=0)
+  legend('right',pch=c(16,21),col=c(1,2),legend=c('Real','Interpolated'),xpd=T,bty='n',inset=-.3)
+  dev.off()
+  
 }
 
 
 ApplyLifeHistoryError<- function()
 {
-		
-		LHI_Error <- 1.1
-				
-		while(LHI_Error>Fish$LHITol) # Only accept values that don't violate LHI too much
-		{
-		 NewFish<- Fish
-		
-		 # LengthError<- abs(rnorm(1,mean=1,sd=Fish$LengthError))
-				 		
-		 # hist((rnorm(2000,mean=1,sd=Fish$LengthError)))	
-		 		
-		 # MortalityError<- abs(rnorm(1,mean=1,sd=Fish$MortalityError))
-		
-		 # NewFish$vbk<- Fish$vbk*(LengthError)
-
-		 NewFish$vbk<- rlnorm(1,log(Fish$vbk),Fish$LengthError)
-		
-		 # NewFish$Linf<- Fish$Linf*(LengthError)
-	
-		 NewFish$Linf<- rlnorm(1,log(Fish$Linf),Fish$LengthError)
-
-		 NewFish$Mat50<- rlnorm(1,log(Fish$Mat50),(Fish$LengthError))
-
-		 NewFish$Mat95<- rlnorm(1,log(Fish$Mat95),(Fish$LengthError))
-		 
-		 if (NewFish$Mat95<NewFish$Mat50)
-		 {
-		 	NewFish$Mat95<- NewFish$Mat50+.01
-		 }
-	
-		if (Fish$t0!=0)
-		{
-		 NewFish$t0<- rnorm(1,(Fish$t0),(Fish$LengthError))
-		}
-	
-		
-# # 		 NewFish$Mat50<- Fish$Mat50*(LengthError)
-
-		 # NewFish$Mat95<- Fish$Mat95*(LengthError)
-				
-		 # NewFish$t0<- Fish$t0*(LengthError)
-
-		 NewFish$M<-rlnorm(1,log(Fish$M),(Fish$MortalityError))
-
-		 NewFish$MaxAge<- log(.01)/-Fish$M
-		 
-
-
-Mtm_Error<- abs((NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0))/1.65-1)
-
-MvK_Error<- abs((NewFish$M/NewFish$vbk)/1.6-1)
-
-LmvLinf_Error<- abs((mean(c(NewFish$Mat50,NewFish$Mat95))/NewFish$Linf)/0.67-1)
-
-LHI_Error<- (mean(c(Mtm_Error,MvK_Error, LmvLinf_Error)))
-
-
-		 # show(paste('MTm Ratio Is ',round(NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0),2),sep=''))
-
-		 # show(paste('M/K Ratio Is ',round(NewFish$M/NewFish$vbk,2),sep=''))
-
-
-		 # show(paste('Lm/Linf Ratio Is ',round(NewFish$Mat95/NewFish$Linf,2),sep=''))
-		 }
-		 		 
-		 return(NewFish)
+  
+  LHI_Error <- 1.1
+  
+  while(LHI_Error>Fish$LHITol) # Only accept values that don't violate LHI too much
+  {
+    NewFish<- Fish
+    
+    # LengthError<- abs(rnorm(1,mean=1,sd=Fish$LengthError))
+    
+    # hist((rnorm(2000,mean=1,sd=Fish$LengthError)))	
+    
+    # MortalityError<- abs(rnorm(1,mean=1,sd=Fish$MortalityError))
+    
+    # NewFish$vbk<- Fish$vbk*(LengthError)
+    
+    NewFish$vbk<- rlnorm(1,log(Fish$vbk),Fish$LengthError)
+    
+    # NewFish$Linf<- Fish$Linf*(LengthError)
+    
+    NewFish$Linf<- rlnorm(1,log(Fish$Linf),Fish$LengthError)
+    
+    NewFish$Mat50<- rlnorm(1,log(Fish$Mat50),(Fish$LengthError))
+    
+    NewFish$Mat95<- rlnorm(1,log(Fish$Mat95),(Fish$LengthError))
+    
+    if (NewFish$Mat95<NewFish$Mat50)
+    {
+      NewFish$Mat95<- NewFish$Mat50+.01
+    }
+    
+    if (Fish$t0!=0)
+    {
+      NewFish$t0<- rnorm(1,(Fish$t0),(Fish$LengthError))
+    }
+    
+    
+    # # 		 NewFish$Mat50<- Fish$Mat50*(LengthError)
+    
+    # NewFish$Mat95<- Fish$Mat95*(LengthError)
+    
+    # NewFish$t0<- Fish$t0*(LengthError)
+    
+    NewFish$M<-rlnorm(1,log(Fish$M),(Fish$MortalityError))
+    
+    NewFish$MaxAge<- -log(.01)/Fish$M
+    
+    
+    
+    Mtm_Error<- abs((NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0))/1.65-1)
+    
+    MvK_Error<- abs((NewFish$M/NewFish$vbk)/1.6-1)
+    
+    LmvLinf_Error<- abs((mean(c(NewFish$Mat50,NewFish$Mat95))/NewFish$Linf)/0.67-1)
+    
+    LHI_Error<- (mean(c(Mtm_Error,MvK_Error, LmvLinf_Error)))
+    
+    
+    # show(paste('MTm Ratio Is ',round(NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0),2),sep=''))
+    
+    # show(paste('M/K Ratio Is ',round(NewFish$M/NewFish$vbk,2),sep=''))
+    
+    
+    # show(paste('Lm/Linf Ratio Is ',round(NewFish$Mat95/NewFish$Linf,2),sep=''))
+  }
+  
+  return(NewFish)
 }
 
 LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,LengthBins,Year,EstimatedM,Fish)
-                         {
- Output<- as.data.frame(matrix(NA,nrow=1,ncol=9))
+{
+  Output<- as.data.frame(matrix(NA,nrow=1,ncol=9))
   
   colnames(Output)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
   
@@ -226,10 +189,10 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
   }	
   
   assumedMK  <- Fish$MvK
-
+  
   # assumedMK  <- M/Fish$vbk
-
-
+  
+  
   genM    <-   0.1 # as.numeric(as.character(SpFile[4, 1 +1]))
   genLinf		<- 1
   genLinfCV	<- Fish$LengthError
@@ -395,8 +358,8 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
   
   
   
-  	LengthMids[LengthMids>Fish$Linf]<- 0.99*Fish$Linf
-    AgeVector<- floor(AgeAtLength(LengthMids,Fish,0))
+  LengthMids[LengthMids>Fish$Linf]<- 0.99*Fish$Linf
+  AgeVector<- floor(AgeAtLength(LengthMids,Fish,0))
   
   Ages<- unique(AgeVector[is.na(AgeVector)==F])
   
@@ -404,25 +367,25 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
   
   
   CohortDeviates<- as.data.frame(matrix(NA,nrow=length(Ages),ncol=2))
-
+  
   AgeDeviates<- as.data.frame(matrix(NA,nrow=length(Ages),ncol=2))
-
+  
   
   for (a in 1:length(Ages))
   {
-  	Where<- (AgeVector==Ages[a] & is.na(AgeVector)==F)
-  
-  	CohortDeviates[a,]<- data.frame(Year-Ages[a],sum(Residuals[Where]))
-
-  	AgeDeviates[a,]<- data.frame(Ages[a],sum(Residuals[Where]))
-
+    Where<- (AgeVector==Ages[a] & is.na(AgeVector)==F)
+    
+    CohortDeviates[a,]<- data.frame(Year-Ages[a],sum(Residuals[Where]))
+    
+    AgeDeviates[a,]<- data.frame(Ages[a],sum(Residuals[Where]))
+    
   }
   
   colnames(CohortDeviates)<- c('Cohort','Residuals')
-
+  
   colnames(AgeDeviates)<- c('Age','Residuals')
-
-    
+  
+  
   
   if (ModelFailed== TRUE)
   {
@@ -439,89 +402,87 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
 
 LengthAtAge<- function(Ages,Fish,Error)
 {
-	
-	LenSD<- Error*(1+Fish$VBErrorSlope*Ages/Fish$MaxAge)
-	
-	RawLengths<- Fish$Linf*(1-exp(-Fish$vbk*(Ages-Fish$t0)))
-	
-	LengthWithError<- RawLengths*rlnorm(length(Ages),mean=0,sd=LenSD)
-	
-	return(LengthWithError)
+  
+  LenSD<- Error*(1+Fish$VBErrorSlope*Ages/Fish$MaxAge)
+  
+  RawLengths<- Fish$Linf*(1-exp(-Fish$vbk*(Ages-Fish$t0)))
+  
+  LengthWithError<- RawLengths*rlnorm(length(Ages),mean=0,sd=LenSD)
+  
+  return(LengthWithError)
 }
 
 AgeAtLength<- function(Lengths,Fish,Error)
 {
-	# Error<- Fish$LengthError	
-	Lengths[is.na(Lengths)]<- 0
-	 # Lengths<- LengthDat$Length
-	AgeSD<- Error*(1+Fish$VBErrorSlope*Lengths/Fish$Linf)
-	RawAges<- (log(1-Lengths/Fish$Linf)/-Fish$vbk)+Fish$t0
-    AgeWithError<- RawAges*rlnorm(length(Lengths),mean=0,sd=AgeSD)
-
-	return(AgeWithError)
+  # Error<- Fish$LengthError	
+  Lengths[is.na(Lengths)]<- 0
+  # Lengths<- LengthDat$Length
+  AgeSD<- Error*(1+Fish$VBErrorSlope*Lengths/Fish$Linf)
+  RawAges<- (log(1-Lengths/Fish$Linf)/-Fish$vbk)+Fish$t0
+  AgeWithError<- RawAges*rlnorm(length(Lengths),mean=0,sd=AgeSD)
+  
+  return(AgeWithError)
 }
 
-	DanHist<- function(Data,Breaks)
-	{
-		# Data<- TempLengthDat$Age[TempLengthDat$MPA==1]
-		
-		# Breaks<- BinBreaks
-		
-		BreakStore<- as.data.frame(matrix(NA,nrow=length(Breaks),ncol=3))
-		colnames(BreakStore)<- c('Age','Frequency','LogFrequency')
-		for (b in 1:(length(Breaks)-1))
-		{
-			BreakStore[b,1:2]<- c(Breaks[b],sum(Data>= Breaks[b] & Data< Breaks[b+1],na.rm=T))
-			BreakStore[b,3]<- log(BreakStore[b,2])
+DanHist<- function(Data,Breaks)
+{
+  # Data<- TempLengthDat$Age[TempLengthDat$MPA==1]
+  
+  # Breaks<- BinBreaks
+  
+  BreakStore<- as.data.frame(matrix(NA,nrow=length(Breaks),ncol=3))
+  colnames(BreakStore)<- c('Age','Frequency','LogFrequency')
+  for (b in 1:(length(Breaks)-1))
+  {
+    BreakStore[b,1:2]<- c(Breaks[b],sum(Data>= Breaks[b] & Data< Breaks[b+1],na.rm=T))
+    BreakStore[b,3]<- log(BreakStore[b,2])
+    
+  }
+  
+  BreakStore$LogFrequency[is.infinite(BreakStore$LogFrequency)]<- NA
+  return(BreakStore[1:(length(Breaks)-1),])
+}
 
-		}
-		
-		BreakStore$LogFrequency[is.infinite(BreakStore$LogFrequency)]<- NA
-		return(BreakStore[1:(length(Breaks)-1),])
-	}
-	
-	
+
 CalculateDensity<- function(Densities,Years,Weights,Form)
 {
-	 
-# # 	   Years<- LaggedYears
-	  # Densities<- TempDenDat
-	 
-	 # # # Densities<- DenDat[DenDat$Year %in% Years]	
-	   # Form<- 'Biomass'
-	   # Weights<- weights
-	
-	Densities$DistanceFromBorder[Densities$DistanceFromBorder==-999]<- 1
-	
-	DensityForm<- colnames(Densities)==Form
-
-	LagDensity<- as.data.frame(matrix(NA,nrow= length(Years),ncol=4))
-	
-	colnames(LagDensity)<- c('Year','MPADensity','FishedDensity','DensityRatio')
-
-	WeightedDensity<- as.data.frame(matrix(NA,nrow=1,ncol=4))
-	
-	colnames(WeightedDensity)<- c('Year','MPADensity','FishedDensity','DensityRatio')	
-	
-	for (y in 1:length(Years))
-	{
-		
-		
-		YearlyDensity<- Densities[Densities$Year==Years[y],]
-		
-		Reserve<- YearlyDensity$MPA==1
-		
-				
-		MPADensity<- sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity[Reserve,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity$SampleArea[Reserve])
-		
-		FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F])
-		
-		LagDensity[y,]<- c(Years[y],MPADensity,FishedDensity,FishedDensity/MPADensity)
-		
-	}
-	
-	WeightedDensity[1,]<- c(Years[length(Years)],sum(Weights*LagDensity$MPADensity)/sum(Weights),sum(Weights*LagDensity$FishedDensity)/sum(Weights),sum(Weights*LagDensity$DensityRatio)/sum(Weights))
-	
-	return(WeightedDensity)
-	
+  
+  # # 	   Years<- LaggedYears
+  # Densities<- TempDenDat
+  
+  # # # Densities<- DenDat[DenDat$Year %in% Years]	
+  # Form<- 'Biomass'
+  # Weights<- weights
+  
+  Densities$DistanceFromBorder[Densities$DistanceFromBorder==-999]<- 1
+  
+  DensityForm<- colnames(Densities)==Form
+  
+  LagDensity<- as.data.frame(matrix(NA,nrow= length(Years),ncol=4))
+  
+  colnames(LagDensity)<- c('Year','MPADensity','FishedDensity','DensityRatio')
+  
+  WeightedDensity<- as.data.frame(matrix(NA,nrow=1,ncol=4))
+  
+  colnames(WeightedDensity)<- c('Year','MPADensity','FishedDensity','DensityRatio')	
+  
+  for (y in 1:length(Years))
+  {
+     
+    YearlyDensity<- Densities[Densities$Year==Years[y],]
+    
+    Reserve<- YearlyDensity$MPA==1
+    
+    MPADensity<- sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity[Reserve,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity$SampleArea[Reserve])
+    
+    FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F])
+    
+    LagDensity[y,]<- c(Years[y],MPADensity,FishedDensity,FishedDensity/MPADensity)
+    
+  }
+  
+  WeightedDensity[1,]<- c(Years[length(Years)],sum(Weights*LagDensity$MPADensity)/sum(Weights),sum(Weights*LagDensity$FishedDensity)/sum(Weights),sum(Weights*LagDensity$DensityRatio)/sum(Weights))
+  
+  return(WeightedDensity)
+  
 }
