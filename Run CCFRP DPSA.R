@@ -27,6 +27,8 @@ Assessments<- c('LBAR','CatchCurve','DensityRatio')
 
 DefaultSD<- 0.05
 
+MinSampleSize<- 200
+
 ### Pull in Assessment Data ###
 
 
@@ -44,13 +46,17 @@ GFD<- join(GFD,SpeciesNames,by='Species.Code')
 
 GFD<- join(GFD,LifeHistory,by='CommName')
   
-SpeciesCatches<- ddply(GFD,c('CommName'),summarize,NumberSampled=length(length_cm))
+SpeciesCatches<- ddply(GFD,c('CommName'),summarize,NumberSampled=length(length_cm),HasLifeHistory=mean(vbk))
+
+SpeciesCatches$NumberSampled<- SpeciesCatches$NumberSampled*as.numeric(is.na(SpeciesCatches$HasLifeHistory)==F)*as.numeric((SpeciesCatches$NumberSampled)>MinSampleSize)
 
 SpeciesCatches<- SpeciesCatches[order(SpeciesCatches$NumberSampled,decreasing=T),]
 
-TopSpecies<- SpeciesCatches$CommName[1:NumberOfSpecies]
+ TopSpecies<- SpeciesCatches$CommName[SpeciesCatches$NumberSampled>0]
 
-TopSpecies<- LifeHistory$CommName[LifeHistory$HasLifeHistory==1]
+# TopSpecies<- SpeciesCatches$CommName[1:NumberOfSpecies]
+
+#  TopSpecies<- LifeHistory$CommName[LifeHistory$HasLifeHistory==1]
 
 GFD<- GFD[GFD$CommName %in% TopSpecies,]
 
@@ -59,6 +65,7 @@ Sites<- c('All',unique(GFD$Site))
 for (s in 1:length(Sites))
 {
   
+  show(Sites[s])
   WhereSite<- GFD$Site==Sites[s]
   
   if (Sites[s]=='All'){WhereSite<- rep(1,dim(GFD)[1])==1}
@@ -82,7 +89,7 @@ for (s in 1:length(Sites))
     {
       dir.create(Assessment)
       dir.create(paste(Assessment, "/", Sites[s],sep=''))
-      dir.create( paste(Assessment, "/", Sites[s],'/',Fish[f],'/',sep=''))
+      dir.create( paste(Assessment, "/", Sites[s],'/',Fishes[f],'/',sep=''))
     }
     
     # Format Data -------------------------------------------------------------
@@ -108,9 +115,9 @@ for (s in 1:length(Sites))
 
     DensityData<- ReformData$DensityData
     
-    write.csv(file=paste(Directory,'/',AssessmentName,'_LengthData.csv',sep=''),LengthData)
+    write.csv(file=paste(Directory,AssessmentName,'_LengthData.csv',sep=''),LengthData)
 
-    write.csv(file=paste(Directory,'/',AssessmentName,'_DensityData.csv',sep=''),DensityData)
+    write.csv(file=paste(Directory,AssessmentName,'_DensityData.csv',sep=''),DensityData)
     
     FigureFolder<- paste(Directory,'Figures/',sep='')
     
@@ -145,6 +152,13 @@ for (s in 1:length(Sites))
       if (Assessments[a]=='LBAR') #Run LBAR assessment
       {
         
+        SampleCheck<- CheckLengthSampleSize(LengthData)        
+        
+        if (SampleCheck$YearsWithEnoughData>0)
+        {
+       
+         LengthData<- SampleCheck$ParedData
+          
         Temp<- LBAR(LengthData,1,0.2,0,2007,NA,10,1,1,NA)$Output		
         # Temp2<- OldLBAR(LengthData,1,0.2,0,100,1,1)$Output
         
@@ -153,18 +167,27 @@ for (s in 1:length(Sites))
         AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
         
         Count<- Count+DataLength	
+        }
       }
       
       if (Assessments[a]=='CatchCurve') #Run Catch Curve analysis
       {
         
-        Temp<- CatchCurve(LengthData,'AgeBased',1,2006,NA,0,10,1,1,1)$Output
+        SampleCheck<- CheckLengthSampleSize(LengthData)        
+        
+        if (SampleCheck$YearsWithEnoughData>0)
+        {
+          
+        LengthData<- SampleCheck$ParedData
+          
+        Temp<- CatchCurve(LengthData,'AgeBased',1,2007,NA,0,10,1,1,1)$Output
         
         DataLength<- dim(Temp)[1]
         
         AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
         
-        Count<- Count+DataLength	
+        Count<- Count+DataLength
+        }
       }
       
       
@@ -195,6 +218,14 @@ for (s in 1:length(Sites))
       
       if (Assessments[a]=='LBSPR') #Run LBSPR Assessment
       {
+        
+        SampleCheck<- CheckLengthSampleSize(LengthData)        
+        
+        if (SampleCheck$YearsWithEnoughData>0)
+        {
+          
+          LengthData<- SampleCheck$ParedData
+        
         Temp2<- LBSPR(LengthData,0,3,1,1,1)
         
         Temp<- Temp2$Output
@@ -204,6 +235,7 @@ for (s in 1:length(Sites))
         AssessmentResults[(Count+1):(Count+DataLength),]<- Temp		
         
         Count<- Count+DataLength
+        }
       }
       
       
