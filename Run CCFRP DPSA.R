@@ -23,7 +23,7 @@ NumberOfSpecies<- 5
 
 AvailableData<- c('LengthData','DensityData')
 
-Assessments<- c('LBAR','CatchCurve','DensityRatio')
+Assessments<- c('LBAR','CatchCurve','DensityRatio','LBSPR')
 
 DefaultSD<- 0.05
 
@@ -105,9 +105,9 @@ for (s in 1:length(Sites))
     
     Fish$M<- log(0.01)/-as.numeric(Fish$MaxAge)
     
-    Fish$Mat50<- as.numeric(Fish$Linf/2)
+    Fish$Mat50<- as.numeric(Fish$Linf/1.5)
 
-    Fish$Mat95<- as.numeric(1.01*(Fish$Linf/2))
+    Fish$Mat95<- as.numeric(1.01*(Fish$Linf/1.5))
     
     ReformData<- FormatCCFRPData(iGFD)
     
@@ -195,6 +195,8 @@ for (s in 1:length(Sites))
       {
         Temp<- DensityRatio(DensityData,1,0.2,'Biomass',100,1)$Output
         
+         ddply(DensityData,c('Year'),summarize,huh=length(Site))
+        
         DataLength<- dim(Temp)[1]
         
         AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
@@ -226,7 +228,7 @@ for (s in 1:length(Sites))
           
           LengthData<- SampleCheck$ParedData
         
-        Temp2<- LBSPR(LengthData,0,3,1,1,1)
+        Temp2<- LBSPR(LengthData,0,10,1,0,0.5)
         
         Temp<- Temp2$Output
         
