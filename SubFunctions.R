@@ -447,14 +447,17 @@ DanHist<- function(Data,Breaks)
 CalculateDensity<- function(Densities,Years,Weights,Form)
 {
   
-  # # 	   Years<- LaggedYears
-  # Densities<- TempDenDat
+#     	   Years<- LaggedYears
+#    Densities<- TempDenDat
+#   
+#   # # # Densities<- DenDat[DenDat$Year %in% Years]	
+#   # Form<- 'Biomass'
+#    Weights<- weights
   
-  # # # Densities<- DenDat[DenDat$Year %in% Years]	
-  # Form<- 'Biomass'
-  # Weights<- weights
+  Densities$DistanceFromBorder[Densities$DistanceFromBorder==-999]<- NA
+
+  Densities$DistanceFromBorder[is.na(Densities$DistanceFromBorder)]<- mean(Densities$DistanceFromBorder,na.rm=T)
   
-  Densities$DistanceFromBorder[Densities$DistanceFromBorder==-999]<- 1
   
   DensityForm<- colnames(Densities)==Form
   
@@ -475,7 +478,7 @@ CalculateDensity<- function(Densities,Years,Weights,Form)
     
     MPADensity<- sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity[Reserve,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity$SampleArea[Reserve])
     
-    FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F])
+    FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm],na.rm=T)/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F],na.rm=T)
     
     LagDensity[y,]<- c(Years[y],MPADensity,FishedDensity,FishedDensity/MPADensity)
     
