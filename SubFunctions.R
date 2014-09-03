@@ -42,7 +42,7 @@ PlotLengthData<- function(LengthDat)
 
 PlotDensityData<- function(DensityDat)
 {
-#   DensityDat<- DensityData
+   DensityDat<- DensityData
   
   DensityDat$MPA<- as.factor(DensityDat$MPA)
   
@@ -54,7 +54,9 @@ PlotDensityData<- function(DensityDat)
   
   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count/SampleArea),BiomassDensity=sum(Biomass/SampleArea))
   
-  write.csv(file=paste(ResultFolder,AssessmentName,' Density Data Summary.csv',sep=''),DensitySummary)
+#   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea),BiomassDensity=mean(Biomass/SampleArea))
+
+write.csv(file=paste(ResultFolder,AssessmentName,' Density Data Summary.csv',sep=''),DensitySummary)
   
   pdf(file=paste(FigureFolder,AssessmentName,' Density Data Analysis.pdf',sep=''))
   
