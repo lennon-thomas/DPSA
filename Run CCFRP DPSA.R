@@ -9,6 +9,9 @@
 rm(list=ls())
 library(lattice)
 library(plyr)
+library(grid)
+library(gridExtra)
+
 
 sapply(list.files(pattern="[.]R$", path="Functions", full.names=TRUE), source)
 
@@ -20,6 +23,8 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 Assessment<- 'CCFRP 2014 Scratch'
 
 NumberOfSpecies<- 5
+
+ReserveYear<- 2007
 
 AvailableData<- c('LengthData','DensityData')
 
@@ -103,9 +108,11 @@ for (s in 1:length(Sites))
       Fish[[WhereLife]]<- as.numeric(SpeciesLifeHistory[l])  
     }
     
-    Fish$M<- log(0.01)/-as.numeric(Fish$MaxAge)
+#     Fish$M<- log(0.01)/-as.numeric(Fish$MaxAge)
     
-    Fish$Mat50<- as.numeric(Fish$Linf/1.5)
+    Fish$M<- Fish$vbk*Fish$MvK
+
+    Fish$Mat50<- as.numeric(Fish$Linf*0.66)
 
     Fish$Mat95<- as.numeric(1.01*(Fish$Linf/1.5))
     
@@ -159,7 +166,7 @@ for (s in 1:length(Sites))
        
          LengthData<- SampleCheck$ParedData
           
-        Temp<- LBAR(LengthData,1,0.2,0,2007,NA,10,1,1,NA)$Output		
+        Temp<- LBAR(LengthData,1,0.2,0,ReserveYear,NA,10,1,1,NA)$Output		
         # Temp2<- OldLBAR(LengthData,1,0.2,0,100,1,1)$Output
         
         DataLength<- dim(Temp)[1]
@@ -180,7 +187,7 @@ for (s in 1:length(Sites))
           
         LengthData<- SampleCheck$ParedData
           
-        Temp<- CatchCurve(LengthData,'AgeBased',1,2007,NA,0,10,1,1,1)$Output
+        Temp<- CatchCurve(LengthData,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Output
         
         DataLength<- dim(Temp)[1]
         
@@ -193,7 +200,7 @@ for (s in 1:length(Sites))
       
       if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
       {
-        Temp<- DensityRatio(DensityData,1,0.2,'Biomass',100,1)$Output
+        Temp<- DensityRatio(DensityData,2,0.2,'Count',100,1)$Output
         
          ddply(DensityData,c('Year'),summarize,huh=length(Site))
         
@@ -228,7 +235,7 @@ for (s in 1:length(Sites))
           
           LengthData<- SampleCheck$ParedData
         
-        Temp2<- LBSPR(LengthData,0,10,1,0,0.5)
+        Temp2<- LBSPR(LengthData,1,10,1,0,0.5,ReserveYear)
         
         Temp<- Temp2$Output
         
@@ -288,6 +295,10 @@ for (s in 1:length(Sites))
     AssessmentResults[,4:7]<- round(AssessmentResults[,4:7],2)
     
     show(AssessmentResults)
+    
+SummaryPanel(AssessmentResults,LengthData,Species,Sites[s])
+  
+
     save.image(file=paste(ResultFolder,AssessmentName,'_Settings.RData',sep='')) #Save settings used to produce current results
     write.csv(file=paste(ResultFolder,AssessmentName,'_Results.csv',sep=''),AssessmentResults) #Save current results
     
