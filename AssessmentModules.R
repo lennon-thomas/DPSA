@@ -1525,7 +1525,7 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
         {
           #If no MPA data, or no root, or told not to use MPA, or not enough time has passed since 
           #MPA implementation then use sum of LHI methods
-          M<- mean(c((1.2*Fish$vbk),(4.22/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))))
+          M<- mean(c((Fish$MvK*Fish$vbk),(4.22/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))))
           
         } else {
           # Calculate Bounded to estimate M
@@ -2255,19 +2255,19 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   # DenDat: The raw density data
   # LagLength: The number of years of lagged data to use
   # Weight: The weight assigned to historic data
-  #   
-  #     DenDat<- DensityData
-  #     
-  #     LagLength=1
-  #     
-  #     Weight=0.2
-  #     
-  #     Form='Biomass'
-  #     
-  #     Iterations=10
-  #     
-  #     BootStrap=1
-  #   
+#   #   
+#       DenDat<- DensityData
+#       
+#       LagLength=1
+#       
+#       Weight=0.2
+#       
+#       Form='Biomass'
+#       
+#       Iterations=10
+#       
+#       BootStrap=1
+    
   ############################
   ### Process Density Data ###	
   ############################
@@ -2303,7 +2303,7 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   BaseFish<- Fish
   
-SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=length(Site))
+SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
   for (i in 1:Iterations)
   {
     
@@ -2377,6 +2377,7 @@ SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=length(Site))
         TempDenDat<- TempDenStorage
       }
       
+      ddply(TempDenDat,c('Year','MPA'),summarize,Count=sum(Count))
       
       WeightedDensity<- CalculateDensity(TempDenDat,LaggedYears,weights,Form)
       
@@ -2499,7 +2500,7 @@ SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=length(Site))
   
 }
 
-LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins)
+LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,ReserveYear)
 {
   ######################
   ###### LBSPR #########
@@ -2646,7 +2647,10 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins)
       {
         AllCatchAtLength<- LengthDat[WhereAll,]
         
-        EstimatedM<- CatchCurve(AllCatchAtLength,1,1,1,0,0,1)$Details$NaturalMortality
+        EstimatedM<- CatchCurve(AllCatchAtLength,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Details$NaturalMortality
+        
+#         Temp<- CatchCurve(LengthData,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Output
+        
         
       }
       
