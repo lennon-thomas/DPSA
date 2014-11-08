@@ -52,7 +52,7 @@ PlotDensityData<- function(DensityDat)
   
   levels(DensityDat$MPA)<- c('Fished','MPA')
   
-  DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count/SampleArea),BiomassDensity=sum(Biomass/SampleArea))
+  DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count/SampleArea,na.rm=T),BiomassDensity=sum(Biomass/SampleArea,na.rm=T))
   
 #   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea),BiomassDensity=mean(Biomass/SampleArea))
 
