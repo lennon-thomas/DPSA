@@ -43,7 +43,9 @@ SpeciesNames<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/C
 
 LifeHistory<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/CCFRP Life History.csv',stringsAsFactors=F) #Read life history
 
-LifeData<- colnames(LifeHistory)[4:dim(LifeHistory)[2]]
+LifeHistory<- LifeHistory[,2:dim(LifeHistory)[2]]
+
+LifeData<- colnames(LifeHistory)[3:dim(LifeHistory)[2]]
 
 source('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/Default_Controlfile.R')
 
@@ -64,6 +66,8 @@ TopSpecies<- SpeciesCatches$CommName[SpeciesCatches$NumberSampled>0]
 #  TopSpecies<- LifeHistory$CommName[LifeHistory$HasLifeHistory==1]
 
 GFD<- GFD[GFD$CommName %in% TopSpecies,]
+
+GFD<- AddMissingFish(GFD)
 
 Sites<- c('All',unique(GFD$Site))
 
