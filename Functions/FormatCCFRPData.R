@@ -2,7 +2,7 @@ FormatCCFRPData<- function(Data)
 {
   # Format Length Data ------------------------------------------------------
   
-  #   Data<- iGFD
+#     Data<- iGFD
   
   LengthDataNames<- c('Year','Month','Site','Length','LengthType','Sex','Special','MPA','FisheryDependent')
   
@@ -38,7 +38,11 @@ FormatCCFRPData<- function(Data)
   
   Data$Weight<- Fish$WeightA* Data$length_cm ^ Fish$WeightB
     
-  DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=length(length_cm),Biomass=sum(Weight,na.rm=T)
+#   DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=length(length_cm[length_cm]),Biomass=sum(Weight,na.rm=T)
+#                       ,SampleArea= mean(Sample_Area,na.rm=T),AreaUnits=unique(Area_units),DistanceFromBorder=mean(Meters.to.MPA.border,na.rm=T)
+#                       ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF))
+  
+  DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=sum(length_cm>0 | is.na(length),na.rm=T),Biomass=sum(Weight,na.rm=T)
                       ,SampleArea= mean(Sample_Area,na.rm=T),AreaUnits=unique(Area_units),DistanceFromBorder=mean(Meters.to.MPA.border,na.rm=T)
                       ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF))
   
