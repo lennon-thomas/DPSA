@@ -2073,11 +2073,11 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
             pdf(file=paste(FigureFolder,i,Years[y],' Catch Curve Analysis.pdf'))
             LayoutMatrix<- matrix(c(1:2),nrow=2,ncol=1)
             PlotLayout<- layout(mat=LayoutMatrix)		
-            plot(LogFrequency ~ Age,data=AgeDistMPA,xlab='Age',ylab='ln Frequency',bty='n',col=3,cex=2,pch=16,main='Inside Reserve',xlim=c(0,max(TempLengthDat$Age+1)+1),ylim=c(0,ceiling(max(AllHist$LogFrequency,na.rm=T))))
+            plot(LogFrequency ~ Age,data=AgeDistMPA,xlab='Age',ylab='ln Frequency',bty='n',col=3,cex=2,pch=16,main='Inside Reserve',xlim=c(0,Fish$MaxAge+1),ylim=c(0,ceiling(max(AllHist$LogFrequency,na.rm=T))))
             lines(seq(from=BinBreaks[MPAPeak],to=BinBreaks[MPALastObserved],length.out=MPANumPoints),PredictedMPAValues,lty=2,lwd=2)
             text(ceiling(max(TempLengthDat$Age+1))*.65,.95*max(PredictedMPAValues),labels=paste('M=',round(NaturalMortality,2) ))
             if (FishedPeak<FishedLastObserved){
-              plot(LogFrequency ~ Age,data=AgeDistFished,xlab='Age',ylab='ln Frequency',bty='n',col=2,cex=2,pch=16,main='Outside Reserve',xlim=c(0,max(TempLengthDat$Age+1)+1),ylim=c(0,ceiling(max(AllHist$LogFrequency,na.rm=T))))
+              plot(LogFrequency ~ Age,data=AgeDistFished,xlab='Age',ylab='ln Frequency',bty='n',col=2,cex=2,pch=16,main='Outside Reserve',xlim=c(0,Fish$MaxAge+1),ylim=c(0,ceiling(max(AllHist$LogFrequency,na.rm=T))))
               lines(seq(from=BinBreaks[FishedPeak],to=BinBreaks[FishedLastObserved],length.out=FishedNumPoints),PredictedFishedValues,lty=2,lwd=2)
               text(ceiling(max(TempLengthDat$Age+1))*.65,max(PredictedFishedValues)*.95,labels=paste('Z=',round(TotalMortality,2), '; F=', round(FishingMortality,2) ))
             }
@@ -2255,19 +2255,19 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   # DenDat: The raw density data
   # LagLength: The number of years of lagged data to use
   # Weight: The weight assigned to historic data
-#   #   
-#       DenDat<- DensityData
-#       
-#       LagLength=1
-#       
-#       Weight=0.2
-#       
-#       Form='Biomass'
-#       
-#       Iterations=10
-#       
-#       BootStrap=1
-    
+  #   #   
+  #       DenDat<- DensityData
+  #       
+  #       LagLength=1
+  #       
+  #       Weight=0.2
+  #       
+  #       Form='Biomass'
+  #       
+  #       Iterations=10
+  #       
+  #       BootStrap=1
+  #     
   ############################
   ### Process Density Data ###	
   ############################
@@ -2284,12 +2284,12 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   colnames(Output)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
   
-#   Output$Method<- as.character(Output$Method)
-#   
-#   Output$Metric<- as.character(Output$Metric)
-#   
-#   Output$Flag<- as.character(Output$Flag)
-#   
+  #   Output$Method<- as.character(Output$Method)
+  #   
+  #   Output$Metric<- as.character(Output$Metric)
+  #   
+  #   Output$Flag<- as.character(Output$Flag)
+  #   
   MCOutput<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=6))
   
   colnames(MCOutput)<- c('Iteration','Year','Method','Value','Metric','Flag')
@@ -2299,11 +2299,12 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   colnames(MCDetails)<- c('Iteration','Year','FishedDensity','MPADensity')
   
   Flag<- 'None'
+  
   c<- 0
   
   BaseFish<- Fish
   
-SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
+  SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
   for (i in 1:Iterations)
   {
     
@@ -2377,7 +2378,7 @@ SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
         TempDenDat<- TempDenStorage
       }
       
-      ddply(TempDenDat,c('Year','MPA'),summarize,Count=sum(Count))
+      #       ddply(TempDenDat,c('Year','MPA'),summarize,Count=sum(Count))
       
       WeightedDensity<- CalculateDensity(TempDenDat,LaggedYears,weights,Form)
       
@@ -2400,7 +2401,7 @@ SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
       
       MCOutput$Value[c]<- WeightedRatio
       
-      MCOutput$Metric[c]<- 'N/k'
+      MCOutput$Metric[c]<- 'Reserve/Fished'
       
       MCOutput$Flag[c]<- Form
       
@@ -2649,7 +2650,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         
         EstimatedM<- CatchCurve(AllCatchAtLength,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Details$NaturalMortality
         
-#         Temp<- CatchCurve(LengthData,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Output
+        #         Temp<- CatchCurve(LengthData,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Output
         
         
       }
