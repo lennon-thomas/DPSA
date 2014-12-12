@@ -2,7 +2,7 @@ FormatCCFRPData<- function(Data)
 {
   # Format Length Data ------------------------------------------------------
   
-#     Data<- iGFD
+#   Data<- iGFD
   
   LengthDataNames<- c('Year','Month','Site','Length','LengthType','Sex','Special','MPA','FisheryDependent')
   
@@ -17,6 +17,8 @@ FormatCCFRPData<- function(Data)
   LengthData$Site<- Data$Site
   
   LengthData$Length<- Data$length_cm
+
+  LengthData$Length[LengthData$Length==0]<- NA
   
   LengthData$LengthType<- 'cm'
   
@@ -37,18 +39,20 @@ FormatCCFRPData<- function(Data)
   # Format Density Data -----------------------------------------------------
   
   Data$Weight<- Fish$WeightA* Data$length_cm ^ Fish$WeightB
-    
-#   DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=length(length_cm[length_cm]),Biomass=sum(Weight,na.rm=T)
-#                       ,SampleArea= mean(Sample_Area,na.rm=T),AreaUnits=unique(Area_units),DistanceFromBorder=mean(Meters.to.MPA.border,na.rm=T)
-#                       ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF))
   
-  DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=sum(length_cm>0 | is.na(length),na.rm=T),Biomass=sum(Weight,na.rm=T)
+  #   DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=length(length_cm[length_cm]),Biomass=sum(Weight,na.rm=T)
+  #                       ,SampleArea= mean(Sample_Area,na.rm=T),AreaUnits=unique(Area_units),DistanceFromBorder=mean(Meters.to.MPA.border,na.rm=T)
+  #                       ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF))
+  
+  DensityData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=sum(length_cm>0 | is.na(length_cm),na.rm=T),Biomass=sum(Weight,na.rm=T)
                       ,SampleArea= mean(Sample_Area,na.rm=T),AreaUnits=unique(Area_units),DistanceFromBorder=mean(Meters.to.MPA.border,na.rm=T)
-                      ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF))
+                      ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF),DistanceProtected=mean(Meters.to.MPA.border,na.rm=T))
   
   DensityData$MPA[DensityData$MPA=='REF']<- 0
   
   DensityData$MPA[DensityData$MPA=='MPA']<- 1
+  
+  DensityData$DistanceProtected[DensityData$MPA==0]<- DensityData$DistanceProtected[DensityData$MPA==0]*-1
   
   return(list(LengthData=LengthData,DensityData=DensityData))
   
