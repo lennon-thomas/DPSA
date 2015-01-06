@@ -11,7 +11,7 @@ library(lattice)
 library(plyr)
 library(grid)
 library(gridExtra)
-
+library(ggplot2)
 
 sapply(list.files(pattern="[.]R$", path="Functions", full.names=TRUE), source)
 
@@ -20,9 +20,9 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'CCFRP 2014 Scratch'
+Assessment<- 'CCFRP 2014 Scratch 2'
 
-NumberOfSpecies<- 10
+NumberOfSpecies<- 6
 
 ReserveYear<- 2007
 
@@ -30,7 +30,7 @@ AvailableData<- c('LengthData','DensityData')
 
 Assessments<- c('CatchCurve','DensityRatio','LBSPR')
 
-DefaultSD<- 0.05
+DefaultSD<- 0.001
 
 MinSampleSize<- 200
 
@@ -41,7 +41,7 @@ GFD<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/For_
 
 SpeciesNames<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/Fish Species.csv',stringsAsFactors=F) #Read species names
 
-LifeHistory<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/CCFRP Life History.csv',stringsAsFactors=F) #Read life history
+LifeHistory<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/CCFRP Life History 2.csv',stringsAsFactors=F) #Read life history
 
 LifeHistory<- LifeHistory[,2:dim(LifeHistory)[2]]
 
@@ -54,6 +54,10 @@ GFD<- join(GFD,SpeciesNames,by='Species.Code')
 GFD<- join(GFD,LifeHistory,by='CommName')
 
 GFD<- FindFishbase(GFD)
+
+GFD$AgeMat50<- NA
+
+GFD$AgeMatSource<- NA
 
 GFD$t0[is.na(GFD$t0)]<- 0
 
@@ -125,20 +129,28 @@ for (s in 1:length(Sites))
       Fish$MaxAge<- -log(0.01)/Fish$M
     }
     
-    if (is.na(SpeciesLifeHistory$AgeMat50)) #Use Prince et al. 2014 LHI
+    #     if (is.na(SpeciesLifeHistory$Mat50)==F & is.na(SpeciesLifeHistory$LocalMaturity)==F)
+    #     {
+    #       Fish$Linf<- SpeciesLifeHistory$Mat50/0.7
+    #     }
+    #     
+    
+    if (is.na(SpeciesLifeHistory$Mat50) ) #Use Prince et al. 2014 LHI
     {
-      Fish$Mat50<- Fish$Linf*0.66
+      Fish$Mat50<- Fish$Linf*Fish$LengthMatRatio
       
-      Fish$Mat95<- as.numeric(1.01*Fish$Mat50)
+      Fish$Mat95<- as.numeric(1.05*Fish$Mat50)
     }
-  
+    
     if (is.na(SpeciesLifeHistory$AgeMat50)==F)
     {
-    Fish$Mat50<- LengthAtAge(SpeciesLifeHistory$AgeMat50,Fish,0)
-    
-    Fish$Mat95<- as.numeric(1.01*(Fish$Linf/1.5))
+      Fish$Mat50<- LengthAtAge(SpeciesLifeHistory$AgeMat50,Fish,0)
+      
+      Fish$Mat95<- as.numeric(1.05*Fish$Mat50)
     }
-   
+    
+    Fish$Mat95<- as.numeric(1.05*Fish$Mat50)
+    
     ReformData<- FormatCCFRPData(iGFD)
     
     LengthData<- ReformData$LengthData
@@ -153,9 +165,11 @@ for (s in 1:length(Sites))
     
     ResultFolder<- paste(Directory,'Results/',sep='')
     
-    dir.create(FigureFolder)
+    dir.create(FigureFolder,recursive=T)
     
-    dir.create(ResultFolder)
+    dir.create(ResultFolder,recursive=T)
+    
+    PlotLifeHistory()
     
     for (d in 1:length(AvailableData)) #Read in available data
     {
@@ -172,14 +186,14 @@ for (s in 1:length(Sites))
     AssessmentResults$Year<- as.numeric(AssessmentResults$Year)
     
     Count<-0
-   
+    
     Fish$LHITol<- 0.99
     
     # LengthData<- LengthData[LengthData$Year>2006,]
     
     for (a in 1:length(Assessments)) #Loop over possible assessments, store in Assessment results. Many assessments have more detailed outputs than can also be accessed 
     {
-     
+      
       if (Assessments[a]=='LBAR') #Run LBAR assessment
       {
         
@@ -188,7 +202,7 @@ for (s in 1:length(Sites))
         if (SampleCheck$YearsWithEnoughData>0)
         {
           
-#           LengthData<- SampleCheck$ParedData
+          #           LengthData<- SampleCheck$ParedData
           
           Temp<- LBAR(SampleCheck$ParedData,1,0.2,0,ReserveYear,NA,1000,1,1,NA)$Output		
           # Temp2<- OldLBAR(LengthData,1,0.2,0,100,1,1)$Output
@@ -209,8 +223,7 @@ for (s in 1:length(Sites))
         if (SampleCheck$YearsWithEnoughData>0)
         {
           
-          
-          Temp<- CatchCurve(SampleCheck$ParedData,'AgeBased',1,ReserveYear,NA,0,1000,1,1,1)$Output
+          Temp<- CatchCurve(SampleCheck$ParedData,'AgeBased',1,ReserveYear,NA,0,2,1,0,1)$Output
           
           DataLength<- dim(Temp)[1]
           
@@ -223,7 +236,7 @@ for (s in 1:length(Sites))
       
       if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
       {
-        Temp<- DensityRatio(DensityData,1,1,'Count',1000,1)$Output
+        Temp<- DensityRatio(DensityData,1,1,'Count',100,1)$Output
         
         ddply(DensityData,c('Year'),summarize,huh=length(Site))
         
@@ -256,9 +269,12 @@ for (s in 1:length(Sites))
         if (SampleCheck$YearsWithEnoughData>0)
         {
           
-#           LengthData<- SampleCheck$ParedData
+          #           LengthData<- SampleCheck$ParedData
+          #           SampleCheck$ParedData$Year[  SampleCheck$ParedData$Year<=2010]<- 1
+          #           
+          #           SampleCheck$ParedData$Year[  SampleCheck$ParedData$Year>=2011]<- 2
           
-          Temp2<- LBSPR(SampleCheck$ParedData,0,50,1,1,1,ReserveYear)
+          Temp2<- LBSPR(SampleCheck$ParedData,0,10,1,1,1,ReserveYear)
           
           Temp<- Temp2$Output
           
@@ -322,7 +338,7 @@ for (s in 1:length(Sites))
     if (sum(AssessmentResults$Method=='CatchCurve')>0)
     {
       
-      SummaryPanel(AssessmentResults,LengthData,Species,Sites[s])
+      SummaryPanel(AssessmentResults,LengthData,Species,Sites[s],YearsToSmooth=3)
       
     }
     save.image(file=paste(ResultFolder,AssessmentName,'_Settings.RData',sep='')) #Save settings used to produce current results

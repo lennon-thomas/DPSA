@@ -1747,7 +1747,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   #Iterations: The number of iterations to run (1 runs only with default data)
   #BootStrap: 1 means bootstrap data in monte carlo runs
   #LifeError: 1 means that that life history has monte carlo based error introduced
-  #HistInterval: The bin width of the size histograms
+  #HistInterval: The bin width of the age histograms
   
   # Fish<- BaseFish
   # Iterations<- 10
@@ -1768,6 +1768,24 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   ################
   #### Process Data ####
   ################
+  
+  FindPeaks<- function(Freqs,Fish)
+  {
+    MaxPeak<- max(Freqs)
+    
+    TopThree<- sort(Freqs,decreasing=T)[1:3]
+    
+    DeltaMax<- (MaxPeak-TopThree)/MaxPeak
+    
+    Peaks<- TopThree[DeltaMax<Fish$PeakTol]
+    
+    ReverseFrequency<-   (Freqs)
+    
+    Peak<- ReverseFrequency[which(ReverseFrequency %in% Peaks)[1]]
+    
+    WherePeak<- which(Freqs==Peak)[1]
+    return(WherePeak)
+  }
   
   CCWeight<- CatchCurveWeight
   
@@ -1792,9 +1810,9 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   
   colnames(MCOutput)<- c('Iteration','Year','Method','SampleSize','Value','Metric','Flag')
   
-  MCDetails<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=4))
+  MCDetails<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=5))
   
-  colnames(MCDetails)<- c('Iteration','Year','FishingMortality','NaturalMortality')
+  colnames(MCDetails)<- c('Iteration','Year','FishingMortality','NaturalMortality','SampleSize')
   
   Output<- as.data.frame(matrix(NA,nrow=length(Years),ncol=9))
   
@@ -1817,6 +1835,30 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
       Fish<- ApplyLifeHistoryError()
     }
     
+    if (sum(LengthDat$MPA)>0)
+    {
+      
+      AllAgeHist<- pmax(.01,AgeAtLength(subset(LengthDat,MPA==1)$Length,Fish,Fish$LengthError  )) #Calculate age at length
+      
+      AgeHist <- hist(AllAgeHist,plot=F)
+      
+      MaxSelectedAge<- max(AgeHist$counts)[1]
+      FullySelectedAge<- ceiling(AgeHist$mids[AgeHist$counts == MaxSelectedAge])
+      
+    }
+    
+    if (sum(LengthDat$MPA)==0)
+    {
+      
+      AllAgeHist<- pmax(.01,AgeAtLength(subset(LengthDat,MPA==0)$Length,Fish,Fish$LengthError  )) #Calculate age at length
+      
+      AgeHist <- hist(AllAgeHist,plot=F)
+      
+      MaxSelectedAge<- max(AgeHist$counts)[1]
+      
+      FullySelectedAge<- floor(AgeHist$mids[AgeHist$counts ==MaxSelectedAge])
+      
+    }
     
     for (y in 1:length(Years)) #Loop over years
     {
@@ -1826,7 +1868,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
       
       TempLengthDat<- LengthDat[LengthDat$Year==Years[y],]
       
-      TempLengthDat<- TempLengthDat[is.na(TempLengthDat$Length)==F,]
+      TempLengthDat<- TempLengthDat[is.na(TempLengthDat$Length)==FALSE,]
       
       SampleSize[y]<- dim(TempLengthDat)[1]
       
@@ -1876,8 +1918,12 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
       
       AgeDistFished$MPA<- 'Fished Area'
       
-      FishedPeak<- which(AgeDistFished$Frequency ==max(AgeDistFished$Frequency))[1] #Identidy the mode of the fished age hist.
+      #       FishedPeak<- which(AgeDistFished$Frequency ==max(AgeDistFished$Frequency))[1] #Identidy the mode of the fished age hist.
       
+      Freqs<- AgeDistFished$Frequency
+      
+      FishedPeak<- FindPeaks(Freqs,Fish)
+      #       FishedPeak<- FullySelectedAge
       # FishedPeak<- TotalPeak
       
       FishedAllObserved<- (which(AgeDistFished$Frequency>0))
@@ -1886,15 +1932,19 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
       
       AgeDistMPA$MPA<- 'MPA'
       
-      MPAPeak<- which(AgeDistMPA$Frequency == max(AgeDistMPA$Frequency))[1] #Identify the mode of the MPA age hist.
+      Freqs<- AgeDistMPA$Frequency
+      
+      MPAPeak<- FindPeaks(Freqs,Fish)
+      
+      if ((Years[y]-ReserveYr)>20)
+      {
+        MPAPeak<- FullySelectedAge
+      }
       
       # MPAPeak<- TotalPeak
       
       MPAAllObserved<- (which(AgeDistMPA$Frequency>0))
-      
-      
       # if ((length(MPAAllObserved)>1 & length(FishedAllObserved)>1) & (is.na(AgeDistMPA$LogFrequency[MPAPeak])==F & is.na(AgeDistFished$LogFrequency[FishedPeak])==F)) #If you've got any real histogram to work with
-      
       if (length(FishedAllObserved)>1 & is.na(AgeDistFished$LogFrequency[FishedPeak])==F) #If you've got any real histogram to work with
         
       {
@@ -1936,7 +1986,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           MPANumPoints<- length(MPAPeak:MPALastObserved)
           
           MPACatchCurve<- lm((AgeDistMPA$LogFrequency[MPAPeak:MPALastObserved]) ~ (AgeDistMPA$Age[MPAPeak:MPALastObserved]),na.action='na.omit') #Fit catch curve between peak and final point
-          
+
           PredictedMPAValues<- predict(MPACatchCurve,data.frame(Ages=seq(from=BinBreaks[MPAPeak],to=BinBreaks[MPALastObserved],length.out=MPANumPoints)))	
           
           if (WeightedRegression==1)
@@ -1966,17 +2016,23 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           {
             Flag<- 'Catch Curve could not estimate M'	
           }
-          NaturalMortality<-  sum(MortalityWeight*c(CatchCurveNaturalMortality,(1.2*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
+          #     NaturalMortality<-  sum(MortalityWeight*c(CatchCurveNaturalMortality,(Fish$MvK*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
+          NaturalMortality<-  CatchCurveNaturalMortality
+          
+          
         }
         
         if (ManualM==1 | sum(TempLengthDat$MPA,na.rm=T)==0 | (is.na(ReserveYr)==F & (Years[y]-ReserveYr)<2)) #Use lit or LHI based M if set that way, if there is no MPA, or if the MPA is less than 2 years old
         {
           
-          MortalityWeight<- c(1,1,1,1)
+          MortalityWeight<- c(1,1)
           
           MortalityWeight<- MortalityWeight/sum(MortalityWeight)
           
-          NaturalMortality<-  sum(MortalityWeight*c(Fish$M,(1.2*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
+          NaturalMortality<-  sum(MortalityWeight*c(Fish$M,Fish$MvK*Fish$vbk),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
+          
+          
+#           NaturalMortality<-  sum(MortalityWeight*c(Fish$M,(1.2*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
           # show(NaturalMortality)
           
           Flag<- 'No MPA based M possible - derived from LHI and Lit'
@@ -1990,8 +2046,6 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           FishedLastObserved <-  FishedLastObserved+1
           
         }
-        
-        
         
         if (is.na(OutsideBoundYr)==F & Years[y]>OutsideBoundYr) # Allows bounding if there was a selectivity intervention outside the MPA
         {
@@ -2095,25 +2149,20 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           
         }
         
-        
         # MCOutput[c,]<- c(i,Years[y],'CatchCurve',FishingMortality/NaturalMortality,'FvFmsy',Flag)
-        
         # MCDetails[c,]<- c(i,Years[y],FishingMortality,NaturalMortality)
-        
         MCOutput$Iteration[c]<- i
         MCOutput$Year[c]<- Years[y]
         MCOutput$Method[c]<- 'CatchCurve'
-        MCOutput$Value[c]<- FishingMortality/NaturalMortality
+        #   MCOutput$Value[c]<- FishingMortality/NaturalMortality
         MCOutput$Metric[c]<- 'FvM'
         MCOutput$Flag[c]<- Flag
         MCOutput$SampleSize[c]<- SampleSize[y]
-        
         MCDetails$Iteration[c]<- i
         MCDetails$Year[c]<- Years[y]
         MCDetails$FishingMortality[c]<- FishingMortality
         MCDetails$NaturalMortality[c]<- NaturalMortality
-        
-        
+        MCDetails$SampleSize[c]<-  SampleSize[y]
       }
       
       
@@ -2124,7 +2173,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
         MCOutput$Iteration[c]<- i
         MCOutput$Year[c]<- Years[y]
         MCOutput$Method[c]<- 'CatchCurve'
-        MCOutput$Value[c]<- NA
+        #   MCOutput$Value[c]<- NA
         MCOutput$Metric[c]<- 'FvM'
         MCOutput$Flag[c]<- Flag
         
@@ -2133,6 +2182,9 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
         MCDetails$Year[c]<- Years[y]
         MCDetails$FishingMortality[c]<- NA      
         MCDetails$NaturalMortality[c]<- NA
+        MCDetails$SampleSize[c]<- NA
+        
+        
         
       }
       MCOutput$Iteration[c]<- i
@@ -2142,11 +2194,53 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     
   } #Close monte carlo loop
   
+  if (sum(is.na(MCDetails$Iteration)==F)>0)
+  {
+    
+    MCDetails$WeightedYear<- Fish$Alpha*(((MCDetails$Year-min(MCDetails$Year,na.rm=T))+1)/length(unique(MCDetails$Year)))
+    
+    MCDetails$WeightedSample<- (1-Fish$Alpha)*MCDetails$SampleSize/max(MCDetails$SampleSize,na.rm=T)
+    
+    MCDetails$TotalMortality<- MCDetails$FishingMortality+MCDetails$NaturalMortality
+    
+    MeanMort=ddply(MCDetails,c('Iteration'),summarize,MeanMort=sum(NaturalMortality*(WeightedYear+WeightedSample),na.rm=T)/sum(WeightedYear+WeightedSample,na.rm=T))
+    
+    MCDetails<- join(MCDetails,MeanMort,by='Iteration')
+    
+    MCDetails$FishingMortality<- MCDetails$TotalMortality-MCDetails$MeanMort
+    
+    MCDetails$FvM<- MCDetails$FishingMortality / MCDetails$MeanMort
+    
+    MCOutput$Value<- MCDetails$FvM
+    
+    MCOutput$Flag[MCOutput$Flag=='Catch-Curve not working-Negative Fishing Mortality']<- 'None'
+    
+    MCOutput$Flag[MCOutput$Value<0]<- 'warning-MPA slope steeper than fished slope'
+    
+    pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
+    
+    p=ggplot(MCDetails,aes(factor(Year),FishingMortality/MeanMort))+geom_boxplot(outlier.shape=NA,aes(fill=SampleSize))+xlab('Year')+ylab('F/M')
+    print(p+scale_y_continuous(limits = quantile(MCDetails$FishingMortality/MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+    dev.off()
+    
+    
+    pdf(file=paste(FigureFolder,' Catch Curve F Boxplots.pdf',sep=''))
+    
+    p=ggplot(MCDetails,aes(factor(Year),FishingMortality))+geom_boxplot(outlier.shape=NA,aes(fill=SampleSize))+xlab('Year')+ylab('F')
+    print(p+scale_y_continuous(limits = quantile(MCDetails$FishingMortality, c(0.1, 0.9),na.rm=T)))
+    dev.off()
+    
+    pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
+    
+    p=ggplot(MCDetails,aes(factor(Year),MeanMort))+geom_boxplot(outlier.shape=NA,aes(fill=SampleSize))+xlab('Year')+ylab('M')
+    print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+    dev.off()
+    
+  }
   
   #####################################
   ##### Proces Monte Carlo Data #######
   #####################################
-  
   TrueIteration<- MCOutput$Iteration==1
   
   TrueOutput<- MCOutput[TrueIteration,]
@@ -2224,17 +2318,6 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   ##### Plot outputs #######
   #####################################
   
-  pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
-  boxplot((MCDetails$FishingMortality/MCDetails$NaturalMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='F/M',notch=T,outline=F,na.rm=T,width=SampleSize)
-  dev.off()
-  
-  pdf(file=paste(FigureFolder,' Catch Curve Fishing Mortality Boxplots.pdf',sep=''))
-  boxplot((MCDetails$FishingMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='F',notch=T,outline=F, width=SampleSize)
-  dev.off()
-  
-  pdf(file=paste(FigureFolder,' Catch Curve Natural Mortality Boxplots.pdf',sep=''))
-  boxplot((MCDetails$NaturalMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='M',notch=T,outline=F, width=SampleSize)
-  dev.off()
   
   Fish<- BaseFish
   
@@ -2730,7 +2813,6 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       UpperCI<- TempValue[Top]
       
       SD<- sd(TempValue[Bottom:Top],na.rm=T)
-      
       Output[y,]<-c(Years[y],'LBSPR',SampleSize[y],TrueOutput$Value[y],LowerCI,UpperCI,SD,'SPR',TrueOutput$Flag[y])
       
     }

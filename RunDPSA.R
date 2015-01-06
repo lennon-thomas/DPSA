@@ -10,11 +10,13 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 ### Pull in Assessment Data ###
 
-  Country<- 'Indonesia'
+AssessmentName<- 'Test'
 
-  Site<- 'Teluk'
+  Country<- 'Ecuador'
 
-  Species<- 'Lutjanus_Gibbus'
+  Site<- 'Galapagos_Islands'
+
+  Species<- 'Spiny_Lobster_MaleRealExtrapTotal'
 
 Fishery <- paste(Country,Site,Species,sep='-')
 

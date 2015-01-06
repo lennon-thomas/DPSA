@@ -1,23 +1,72 @@
 
+PlotLifeHistory<- function()
+{
+  
+  Lengths<- LengthAtAge(1:Fish$MaxAge,Fish,0)
+
+  Maturity<- MaturityAtAge(Lengths,Fish)
+  
+  LifeMat<- data.frame(1:Fish$MaxAge,Lengths,Maturity)
+  
+  colnames(LifeMat)<- c('Age','Length','PercentMature')
+  
+  pdf(file=paste(FigureFolder,AssessmentName,' Life History.pdf',sep=''))
+  
+  LifePlot<- ggplot(LifeMat,aes(x=Age,y=Length,color=PercentMature))+geom_line(size=2)+ylab('Length (cm)')
+  
+  print( LifePlot + scale_colour_gradient(limits=c(0, 1), low="steelblue2",high='red'))  
+  
+  dev.off()
+}
+
 PlotLengthData<- function(LengthDat)
 {
 #   LengthDat<- LengthData
   
-  LengthDat$MPA<- as.factor(LengthData$MPA)
-
+  #   LengthDat$Length[LengthDat$Length==0]<- NA
+  
+  LengthDat$MPA<- as.factor(LengthDat$MPA)
+  
   MaxYear<- max(LengthDat$Year,na.rm=T)
   
-  LengthDat$Year<- as.factor(LengthData$Year)
+  LengthDat$Year<- as.factor(LengthDat$Year)
   
   levels(LengthDat$MPA)<- c('Fished','MPA')
+    
+  Breaks<<- seq(from=1,to=max(LengthDat$Length,na.rm=T)+5,by=2)
+    
+  LengthHistogram<- ddply(LengthDat,c('Year','MPA'),summarize,Counts=hist(Length,plot=F,breaks=Breaks)$counts,Density=hist(Length,plot=F,breaks=Breaks)$density,SizeBin=hist(Length,plot=F,breaks=Breaks)$mids)
   
   pdf(file=paste(FigureFolder,AssessmentName,' Length Data Analysis.pdf',sep=''))
   
+  print(ggplot(LengthHistogram,aes(SizeBin,Counts))+
+          geom_point(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA),size=3,alpha=.6)+
+          geom_line(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA))+
+          geom_point(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA),size=3,alpha=.6)+
+          geom_line(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA))+
+          geom_vline(xintercept=Fish$Mat50,linetype = "longdash",aes(alpha=0.5))+
+          geom_vline(xintercept=Fish$Linf,linetype = "longdash",aes(alpha=0.5),color='red2')+
+          facet_wrap(~Year,as.table=F)+xlab('Length')+ylab('Count')+
+          theme(legend.title=element_blank()) ) 
+  
+  
+  
+  print(ggplot(LengthHistogram,aes(SizeBin,Density))+
+          geom_point(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA),size=3,alpha=.6)+
+          geom_line(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA))+
+          geom_point(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA),size=3,alpha=.6)+
+          geom_line(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA))+
+          geom_vline(xintercept=Fish$Mat50,linetype = "longdash",aes(alpha=0.5))+
+          geom_vline(xintercept=Fish$Linf,linetype = "longdash",aes(alpha=0.5),color='red2')+
+          facet_wrap(~Year,as.table=F)+xlab('Length')+ylab('Density')+
+          theme(legend.title=element_blank()) )
+  
+  
   print(densityplot(~Length | Year,groups=MPA,data=LengthDat,auto.key=T,type='count',lwd=2,panel=function(x,...)
-    {
+  {
     panel.densityplot(x,...)
     panel.abline(v=Fish$Mat50)
-    } 
+  } 
   ))
   
   print(densityplot(~Length | Year,groups=MPA,data=LengthDat[LengthDat$Year==MaxYear,],auto.key=T,type='count',lwd=2,panel=function(x,...)
@@ -27,14 +76,18 @@ PlotLengthData<- function(LengthDat)
   } 
   ))
   
-  print(bwplot(Length ~MPA | Year,data=LengthDat,auto.key=T,type='count'))
+  print(bwplot(Length ~MPA | Year,data=LengthDat,auto.key=T,type='count',panel=function(x,y,...)
+  {
+    panel.bwplot(x,y,...)
+    panel.abline(h=Fish$Mat50)
+  }))
   
   LengthSummary<- ddply(LengthDat,c('Year','MPA'),summarize,SampleSize=length(Length))
   
   print(dotplot(SampleSize ~MPA | Year,data=LengthSummary,xlab='Sample Size',cex=2))
   
   dev.off()
- 
+  
   write.csv(file=paste(ResultFolder,AssessmentName,' Length Data Summary.csv',sep=''),LengthSummary)
   
   
@@ -42,7 +95,7 @@ PlotLengthData<- function(LengthDat)
 
 PlotDensityData<- function(DensityDat)
 {
-   DensityDat<- DensityData
+  #   DensityDat<- DensityData
   
   DensityDat$MPA<- as.factor(DensityDat$MPA)
   
@@ -52,19 +105,21 @@ PlotDensityData<- function(DensityDat)
   
   levels(DensityDat$MPA)<- c('Fished','MPA')
   
-  DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count/SampleArea,na.rm=T),BiomassDensity=sum(Biomass/SampleArea,na.rm=T))
+  #   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count,na.rm=T)/sum(SampleArea,na.rm=T),BiomassDensity=sum(Biomass/SampleArea,na.rm=T))
   
-#   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea),BiomassDensity=mean(Biomass/SampleArea))
-
-write.csv(file=paste(ResultFolder,AssessmentName,' Density Data Summary.csv',sep=''),DensitySummary)
+  DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea,na.rm=T),BiomassDensity=mean(Biomass/SampleArea,na.rm=T))
+  #Does the Mean or sum make more sense here?
+  
+  #   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea),BiomassDensity=mean(Biomass/SampleArea))
+  
+  write.csv(file=paste(ResultFolder,AssessmentName,' Density Data Summary.csv',sep=''),DensitySummary)
   
   pdf(file=paste(FigureFolder,AssessmentName,' Density Data Analysis.pdf',sep=''))
-  
   print(barchart(NumberDensity~MPA | Year,data=DensitySummary,ylab='Numbers/Area',col=c('firebrick1','skyblue3')))
-
+  
   print(barchart(BiomassDensity~MPA | Year,data=DensitySummary,ylab='Biomass/Area',col=c('firebrick1','skyblue3')))
   
- dev.off()
+  dev.off()
 }
 
 PlotCatchData<- function(CatchDat)
@@ -206,8 +261,8 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
   Walpha		<- Fish$WeightA
   genK    <- genM/assumedMK
   # minLen  <- Fleet$MinSizeCaught
-  minLen  <- min(CatchatLength)
-  maxLen  <- 1.2 * Fish$Linf
+  minLen  <- min(CatchatLength,na.rm=T)
+  maxLen  <- 1.2 * max(CatchatLength,na.rm=T)
   # maxLen  <- (Fleet$MaxSizeCaught)
   # maxLen  <- 1.1*max(CatchatLength)    
   #################################################################
@@ -218,7 +273,7 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
   LengthMids <- seq(LengthClasses[1] +((LengthClasses[2]-LengthClasses[1])/2), by=(LengthClasses[2]-LengthClasses[1]), length=length(LengthClasses)-1)
   # LenFreq <- hist(CatchatLength,breaks=seq(floor(minLen),ceiling(maxLen),by=LengthBins),plot=FALSE,right=F)$counts
   LenFreq<- DanHist(CatchatLength,seq(floor(minLen),ceiling(maxLen),by=LengthBins))$Frequency
-  
+
   # DanHist(CatchatLength,seq(minLen,maxLen+LengthBins,by=LengthBins))
   
   LenProp <- as.vector(LenFreq/sum(LenFreq))
@@ -420,7 +475,8 @@ AgeAtLength<- function(Lengths,Fish,Error)
   Lengths[is.na(Lengths)]<- 0
   # Lengths<- LengthDat$Length
   AgeSD<- Error*(1+Fish$VBErrorSlope*Lengths/Fish$Linf)
-  RawAges<- (log(1-Lengths/Fish$Linf)/-Fish$vbk)+Fish$t0
+#   RawAges<- (log(1-(Lengths)/Fish$Linf)/-Fish$vbk)+Fish$t0
+  RawAges<- (log(1-pmin(Lengths,Fish$Linf*.99)/Fish$Linf)/-Fish$vbk)+Fish$t0
   AgeWithError<- RawAges*rlnorm(length(Lengths),mean=0,sd=AgeSD)
   
   return(AgeWithError)
@@ -449,15 +505,15 @@ DanHist<- function(Data,Breaks)
 CalculateDensity<- function(Densities,Years,Weights,Form)
 {
   
-#     	   Years<- LaggedYears
-#    Densities<- TempDenDat
-#   
-#   # # # Densities<- DenDat[DenDat$Year %in% Years]	
-#   # Form<- 'Biomass'
-#    Weights<- weights
+  #   Years<- LaggedYears
+  #   Densities<- TempDenDat
+  #   
+  #   # # # Densities<- DenDat[DenDat$Year %in% Years]	
+  #   Form<- 'Biomass'
+  #   Weights<- weights
   
   Densities$DistanceFromBorder[Densities$DistanceFromBorder==-999]<- NA
-
+  
   Densities$DistanceFromBorder[is.na(Densities$DistanceFromBorder)]<- mean(Densities$DistanceFromBorder,na.rm=T)
   
   
@@ -473,15 +529,19 @@ CalculateDensity<- function(Densities,Years,Weights,Form)
   
   for (y in 1:length(Years))
   {
-     
+    
     YearlyDensity<- Densities[Densities$Year==Years[y],]
     
     Reserve<- YearlyDensity$MPA==1
     
-    MPADensity<- sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity[Reserve,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity$SampleArea[Reserve])
+    MPADensity<- sum(YearlyDensity$DistanceFromBorder[Reserve]*(YearlyDensity[Reserve,DensityForm]/YearlyDensity$SampleArea[Reserve]))/sum(YearlyDensity$DistanceFromBorder[Reserve])
     
-    FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm],na.rm=T)/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F],na.rm=T)
+    FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*(YearlyDensity[Reserve==F,DensityForm]/YearlyDensity$SampleArea[Reserve==F]),na.rm=T)/sum(YearlyDensity$DistanceFromBorder[Reserve==F],na.rm=T)
     
+    #     MPADensity<- sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity[Reserve,DensityForm])/sum(YearlyDensity$DistanceFromBorder[Reserve]*YearlyDensity$SampleArea[Reserve])
+    #     
+    #     FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm],na.rm=T)/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F],na.rm=T)
+    #     
     LagDensity[y,]<- c(Years[y],MPADensity,FishedDensity,FishedDensity/MPADensity)
     
   }
@@ -491,3 +551,66 @@ CalculateDensity<- function(Densities,Years,Weights,Form)
   return(WeightedDensity)
   
 }
+
+movingAverage <- function(x, n=1, centered=FALSE) {
+  
+  if (centered) {
+    before <- floor  ((n-1)/2)
+    after  <- ceiling((n-1)/2)
+  } else {
+    before <- n-1
+    after  <- 0
+  }
+  
+  # Track the sum and count of number of non-NA items
+  s     <- rep(0, length(x))
+  count <- rep(0, length(x))
+  
+  # Add the centered data 
+  new <- x
+  # Add to count list wherever there isn't a 
+  count <- count + !is.na(new)
+  # Now replace NA_s with 0_s and add to total
+  new[is.na(new)] <- 0
+  s <- s + new
+  
+  # Add the data from before
+  i <- 1
+  while (i <= before) {
+    # This is the vector with offset values to add
+    new   <- c(rep(NA, i), x[1:(length(x)-i)])
+    
+    count <- count + !is.na(new)
+    new[is.na(new)] <- 0
+    s <- s + new
+    
+    i <- i+1
+  }
+  
+  # Add the data from after
+  i <- 1
+  while (i <= after) {
+    # This is the vector with offset values to add
+    new   <- c(x[(i+1):length(x)], rep(NA, i))
+    
+    count <- count + !is.na(new)
+    new[is.na(new)] <- 0
+    s <- s + new
+    
+    i <- i+1
+  }
+  
+  # return sum divided by count
+  return(s/count)
+}
+
+MaturityAtAge <- function(Length,Fish)
+{
+  
+ 
+    s50<- Fish$Mat50
+    
+    s95<- Fish$Mat95
+        
+    mature<- ((1/(1+exp(-log(19)*((Length-s50)/(s95-s50))))))  
+  }
