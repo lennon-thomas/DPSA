@@ -20,7 +20,7 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'CCFRP 2014 Scratch 2'
+Assessment<- 'CCFRP 2.0'
 
 NumberOfSpecies<- 6
 
@@ -173,7 +173,6 @@ for (s in 1:length(Sites))
     
     for (d in 1:length(AvailableData)) #Read in available data
     {
-      #       eval(parse(text=paste(AvailableData[d],'<- read.csv(',"'",Directory,Fishery,'_',AvailableData[d],'.csv',"'",')',sep='')))
       eval(parse(text=paste('Plot',AvailableData[d],'(',AvailableData[d],')',sep='')))
     }
     
@@ -188,9 +187,7 @@ for (s in 1:length(Sites))
     Count<-0
     
     Fish$LHITol<- 0.99
-    
-    # LengthData<- LengthData[LengthData$Year>2006,]
-    
+        
     for (a in 1:length(Assessments)) #Loop over possible assessments, store in Assessment results. Many assessments have more detailed outputs than can also be accessed 
     {
       
@@ -201,12 +198,10 @@ for (s in 1:length(Sites))
         
         if (SampleCheck$YearsWithEnoughData>0)
         {
-          
-          #           LengthData<- SampleCheck$ParedData
-          
-          Temp<- LBAR(SampleCheck$ParedData,1,0.2,0,ReserveYear,NA,1000,1,1,NA)$Output		
-          # Temp2<- OldLBAR(LengthData,1,0.2,0,100,1,1)$Output
-          
+
+            
+          Temp<- LBAR(SampleCheck$ParedData,LagLength=1,Weight=0.2,IncludeMPA=0,ReserveYr=ReserveYear,OutsideBoundYr=NA,Iterations=1000,
+                      BootStrap=1,LifeError=1,Lc=NA)$Output		
           DataLength<- dim(Temp)[1]
           
           AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
@@ -223,7 +218,9 @@ for (s in 1:length(Sites))
         if (SampleCheck$YearsWithEnoughData>0)
         {
           
-          Temp<- CatchCurve(SampleCheck$ParedData,'AgeBased',1,ReserveYear,NA,0,2,1,0,1)$Output
+                      
+          Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight='AgeBased',WeightedRegression=1,
+                            ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=200,BootStrap=1,LifeError=0,HistInterval=1)$Output
           
           DataLength<- dim(Temp)[1]
           
@@ -236,7 +233,8 @@ for (s in 1:length(Sites))
       
       if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
       {
-        Temp<- DensityRatio(DensityData,1,1,'Count',100,1)$Output
+                  
+        Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=1000,BootStrap=1)$Output
         
         ddply(DensityData,c('Year'),summarize,huh=length(Site))
         
@@ -249,7 +247,7 @@ for (s in 1:length(Sites))
       
       if (Assessments[a]=='CatchMSY')
       {
-        Temp2<- CatchMSY(CatchData,3000,0.05,0,0,1,0,0,1,NA,c(0.75,0.99),NA,NA,c(0.25,0.65))
+        Temp2<- CatchMSY(CatchData,1000,0.05,0,0,1,0,0,1,NA,c(0.75,0.99),NA,NA,c(0.25,0.65))
         
         Temp<- Temp2$Output
         
@@ -268,13 +266,8 @@ for (s in 1:length(Sites))
         
         if (SampleCheck$YearsWithEnoughData>0)
         {
-          
-          #           LengthData<- SampleCheck$ParedData
-          #           SampleCheck$ParedData$Year[  SampleCheck$ParedData$Year<=2010]<- 1
-          #           
-          #           SampleCheck$ParedData$Year[  SampleCheck$ParedData$Year>=2011]<- 2
-          
-          Temp2<- LBSPR(SampleCheck$ParedData,0,10,1,1,1,ReserveYear)
+                    
+          Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=20,BootStrap=1,LifeError=1,LengthBins=1,ReserveYear=ReserveYear)
           
           Temp<- Temp2$Output
           

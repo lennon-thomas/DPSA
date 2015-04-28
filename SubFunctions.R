@@ -3,7 +3,7 @@ PlotLifeHistory<- function()
 {
   
   Lengths<- LengthAtAge(1:Fish$MaxAge,Fish,0)
-
+  
   Maturity<- MaturityAtAge(Lengths,Fish)
   
   LifeMat<- data.frame(1:Fish$MaxAge,Lengths,Maturity)
@@ -21,7 +21,7 @@ PlotLifeHistory<- function()
 
 PlotLengthData<- function(LengthDat)
 {
-#   LengthDat<- LengthData
+  #   LengthDat<- LengthData
   
   #   LengthDat$Length[LengthDat$Length==0]<- NA
   
@@ -32,9 +32,9 @@ PlotLengthData<- function(LengthDat)
   LengthDat$Year<- as.factor(LengthDat$Year)
   
   levels(LengthDat$MPA)<- c('Fished','MPA')
-    
+  
   Breaks<<- seq(from=1,to=max(LengthDat$Length,na.rm=T)+5,by=2)
-    
+  
   LengthHistogram<- ddply(LengthDat,c('Year','MPA'),summarize,Counts=hist(Length,plot=F,breaks=Breaks)$counts,Density=hist(Length,plot=F,breaks=Breaks)$density,SizeBin=hist(Length,plot=F,breaks=Breaks)$mids)
   
   pdf(file=paste(FigureFolder,AssessmentName,' Length Data Analysis.pdf',sep=''))
@@ -61,30 +61,19 @@ PlotLengthData<- function(LengthDat)
           facet_wrap(~Year,as.table=F)+xlab('Length')+ylab('Density')+
           theme(legend.title=element_blank()) )
   
+  print(
+    (ggplot(data=LengthDat,aes(Length,fill=MPA))+geom_density(alpha=0.6,aes(y=..count..))+
+       facet_wrap(~Year,as.table=F)+
+       geom_vline(xintercept=Fish$Mat50,linetype='longdash')+geom_vline(xintercept=Fish$Linf,linetype='longdash',color='red2')))
   
-  print(densityplot(~Length | Year,groups=MPA,data=LengthDat,auto.key=T,type='count',lwd=2,panel=function(x,...)
-  {
-    panel.densityplot(x,...)
-    panel.abline(v=Fish$Mat50)
-  } 
-  ))
   
-  print(densityplot(~Length | Year,groups=MPA,data=LengthDat[LengthDat$Year==MaxYear,],auto.key=T,type='count',lwd=2,panel=function(x,...)
-  {
-    panel.densityplot(x,...)
-    panel.abline(v=Fish$Mat50)
-  } 
-  ))
+  print(ggplot(data=LengthDat,aes(factor(Year),Length,fill=MPA))+geom_boxplot(varwidth=T,alpha=0.6))
   
-  print(bwplot(Length ~MPA | Year,data=LengthDat,auto.key=T,type='count',panel=function(x,y,...)
-  {
-    panel.bwplot(x,y,...)
-    panel.abline(h=Fish$Mat50)
-  }))
   
   LengthSummary<- ddply(LengthDat,c('Year','MPA'),summarize,SampleSize=length(Length))
   
-  print(dotplot(SampleSize ~MPA | Year,data=LengthSummary,xlab='Sample Size',cex=2))
+  print(ggplot(data=LengthSummary,aes(x=Year,y=SampleSize,fill=MPA))+geom_bar(stat='identity'))
+  
   
   dev.off()
   
@@ -273,7 +262,7 @@ LBSPR_SingleSpeciesAssessmentfun<- function(CatchatLength,AssessDir,CurrentDir,L
   LengthMids <- seq(LengthClasses[1] +((LengthClasses[2]-LengthClasses[1])/2), by=(LengthClasses[2]-LengthClasses[1]), length=length(LengthClasses)-1)
   # LenFreq <- hist(CatchatLength,breaks=seq(floor(minLen),ceiling(maxLen),by=LengthBins),plot=FALSE,right=F)$counts
   LenFreq<- DanHist(CatchatLength,seq(floor(minLen),ceiling(maxLen),by=LengthBins))$Frequency
-
+  
   # DanHist(CatchatLength,seq(minLen,maxLen+LengthBins,by=LengthBins))
   
   LenProp <- as.vector(LenFreq/sum(LenFreq))
@@ -475,7 +464,7 @@ AgeAtLength<- function(Lengths,Fish,Error)
   Lengths[is.na(Lengths)]<- 0
   # Lengths<- LengthDat$Length
   AgeSD<- Error*(1+Fish$VBErrorSlope*Lengths/Fish$Linf)
-#   RawAges<- (log(1-(Lengths)/Fish$Linf)/-Fish$vbk)+Fish$t0
+  #   RawAges<- (log(1-(Lengths)/Fish$Linf)/-Fish$vbk)+Fish$t0
   RawAges<- (log(1-pmin(Lengths,Fish$Linf*.99)/Fish$Linf)/-Fish$vbk)+Fish$t0
   AgeWithError<- RawAges*rlnorm(length(Lengths),mean=0,sd=AgeSD)
   
@@ -607,10 +596,10 @@ movingAverage <- function(x, n=1, centered=FALSE) {
 MaturityAtAge <- function(Length,Fish)
 {
   
- 
-    s50<- Fish$Mat50
-    
-    s95<- Fish$Mat95
-        
-    mature<- ((1/(1+exp(-log(19)*((Length-s50)/(s95-s50))))))  
-  }
+  
+  s50<- Fish$Mat50
+  
+  s95<- Fish$Mat95
+  
+  mature<- ((1/(1+exp(-log(19)*((Length-s50)/(s95-s50))))))  
+}

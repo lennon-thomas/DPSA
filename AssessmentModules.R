@@ -1986,7 +1986,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           MPANumPoints<- length(MPAPeak:MPALastObserved)
           
           MPACatchCurve<- lm((AgeDistMPA$LogFrequency[MPAPeak:MPALastObserved]) ~ (AgeDistMPA$Age[MPAPeak:MPALastObserved]),na.action='na.omit') #Fit catch curve between peak and final point
-
+          
           PredictedMPAValues<- predict(MPACatchCurve,data.frame(Ages=seq(from=BinBreaks[MPAPeak],to=BinBreaks[MPALastObserved],length.out=MPANumPoints)))	
           
           if (WeightedRegression==1)
@@ -2032,7 +2032,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           NaturalMortality<-  sum(MortalityWeight*c(Fish$M,Fish$MvK*Fish$vbk),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
           
           
-#           NaturalMortality<-  sum(MortalityWeight*c(Fish$M,(1.2*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
+          #           NaturalMortality<-  sum(MortalityWeight*c(Fish$M,(1.2*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
           # show(NaturalMortality)
           
           Flag<- 'No MPA based M possible - derived from LHI and Lit'
@@ -2765,6 +2765,8 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ###### Process Monte Carlo Data #########
   #########################################
   
+  SampleSize<- ddply(LengthDat,c('Year'),summarize,Samples=length(Length))
+  
   TrueIteration<- MCOutput$Iteration==1
   
   TrueOutput<- MCOutput[TrueIteration,]
@@ -2794,28 +2796,17 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   if (Iterations>1)
   {
     
-    for (y in 1:length(Years))
-    {
-      Where<- MCOutput$Year==Years[y]
-      
-      Temp<- MCOutput[Where,]
-      
-      TempValue<- sort(as.numeric(Temp$Value))
-      
-      Bottom<- ceiling(.025*length(TempValue))
-      
-      Top<- ceiling(.975*length(TempValue))
-      
-      MeanMetric<- mean(as.numeric(Temp$Value),na.rm=T)
-      
-      LowerCI<- TempValue[Bottom]
-      
-      UpperCI<- TempValue[Top]
-      
-      SD<- sd(TempValue[Bottom:Top],na.rm=T)
-      Output[y,]<-c(Years[y],'LBSPR',SampleSize[y],TrueOutput$Value[y],LowerCI,UpperCI,SD,'SPR',TrueOutput$Flag[y])
-      
-    }
+    MCOutput<- join(MCOutput,SampleSize,by='Year')  
+    
+    MCOutput$value<- MCOutput$Value
+    
+    Output<- ddply(MCOutput,c('Year'),summarize,Method='LBSPR',SampleSize=unique(Samples),Value=mean(value,na.rm=T),
+                   LowerCI=quantile(value,0.025,na.rm=T),UpperCI=quantile(value,0.975,na.rm=T),SD=sd(value,na.rm=T),
+                   Metric='SPR',Flag=NA)
+    
+    Output$Flag<-TrueOutput$Flag 
+    
+    MCOutput$value<- NULL
     
   }
   
@@ -2823,27 +2814,30 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ###### Make Plots #########
   ######################
   
-  pdf(file=paste(FigureFolder,'Age Residuals Boxplots.pdf',sep=''))
-  boxplot(AgeResiduals$Residuals ~ AgeResiduals$Age,frame=F,xlab='Age',ylab='Residuals',notch=T,outline=F)
-  abline(h=0)
-  dev.off()
-  
-  
-  pdf(file=paste(FigureFolder,'Cohort Residuals Boxplots.pdf',sep=''))
-  boxplot(CatchCurveResiduals$Residuals ~ CatchCurveResiduals$Cohort,frame=F,xlab='Cohort',ylab='Residuals',notch=T,outline=F)
-  abline(h=0)
-  dev.off()
-  
-  
-  pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
-  boxplot(MCOutput$Value ~ MCOutput$Year,frame=F,xlab='Year',ylab='SPR',notch=T,outline=F,width=SampleSize)
-  dev.off()
-  
-  pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
-  boxplot((MCDetails$FvM)~MCDetails$Year,frame=F,xlab='Year',ylab='F/M',notch=T,outline=F, width=SampleSize)
-  dev.off()
-  
-  
+  if (any(!is.na(MCOutput$Value)))
+  {
+    pdf(file=paste(FigureFolder,'Age Residuals Boxplots.pdf',sep=''))
+    print(ggplot(data=AgeResiduals,aes(factor(Age),Residuals))+geom_boxplot(varwidth=T)
+          +xlab('Age')+ylab('Residuals')+geom_hline(yintercept=0))
+    dev.off()
+    
+    pdf(file=paste(FigureFolder,'Cohort Residuals Boxplots.pdf',sep=''))
+    print(ggplot(data=CatchCurveResiduals,aes(factor(Cohort),Residuals))+geom_boxplot(varwidth=T)
+          +xlab('Cohort')+ylab('Residuals')+geom_hline(yintercept=0)+theme(axis.text.x=element_text(angle=45)))
+    dev.off()
+    
+    pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
+    print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot(varwidth=T)+geom_smooth(aes(group=1))
+          +xlab('Year')+ylab('SPR'))
+    dev.off()
+    
+    MCDetails<- join(MCDetails,SampleSize,by='Year')
+    pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
+    print(ggplot(data=MCDetails,aes(factor(Year),FvM,fill=Samples))+geom_boxplot(varwidth=T)+geom_smooth(aes(group=1))
+          +xlab('Year')+ylab('F/Fmsy'))  
+    dev.off()
+    
+  }
   Fish<- BaseFish
   
   return(list(Output=Output,Details=MCDetails))

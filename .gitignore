@@ -3,4 +3,25 @@
 .RData
 **/*.pdf
 **/*.csv
+~Data**/*.Rdata
+**/*.pdf
+**/*.xlsx
+**/*.xls
+**/*.Rproj
+**/*.Rdata
+**/*.rdata
+**/*.out
+Results**/*.csv
+Results**/*.*
+.txt
+**/*.txt
+Presentations**/*.*
+Results/
+**/*.docx
+Paper**/*.csv
+Paper**/*.*
+**/*.docx
+CCFRP 2.0**/*.*
+LBSPR**/*.*
+
 
