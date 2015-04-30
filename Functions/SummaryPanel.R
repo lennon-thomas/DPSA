@@ -1,9 +1,8 @@
 SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth)
 {
   
-    LengthDat<- LengthData
-    AssessData<- AssessmentResults
-  
+#     LengthDat<- LengthData
+#     AssessData<- AssessmentResults
   LengthDat$MPA<- as.factor(LengthData$MPA)
   
   MaxYear<- max(LengthDat$Year,na.rm=T)

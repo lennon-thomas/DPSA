@@ -603,3 +603,5 @@ MaturityAtAge <- function(Length,Fish)
   
   mature<- ((1/(1+exp(-log(19)*((Length-s50)/(s95-s50))))))  
 }
+
+
