@@ -2803,7 +2803,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
     
     Output<- ddply(MCOutput,c('Year'),summarize,Method='LBSPR',SampleSize=unique(Samples),Value=mean(value,na.rm=T),
                    LowerCI=quantile(value,0.025,na.rm=T),UpperCI=quantile(value,0.975,na.rm=T),SD=sd(value,na.rm=T),
-                   Metric='SPR',Flag=NA)
+                   Metric='SPR',Flag='None')
     
     Output$Flag<-TrueOutput$Flag 
     
@@ -2818,23 +2818,23 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   if (any(!is.na(MCOutput$Value)))
   {
     pdf(file=paste(FigureFolder,'Age Residuals Boxplots.pdf',sep=''))
-    print(ggplot(data=AgeDeviates,aes(factor(Age),Residuals))+geom_boxplot(varwidth=T)
+    print(ggplot(data=AgeDeviates,aes(factor(Age),Residuals))+geom_boxplot(varwidth=F)
           +xlab('Age')+ylab('Residuals')+geom_hline(yintercept=0))
     dev.off()
     
     pdf(file=paste(FigureFolder,'Cohort Residuals Boxplots.pdf',sep=''))
-    print(ggplot(data=CohortDeviates,aes(factor(Cohort),Residuals))+geom_boxplot(varwidth=T)
+    print(ggplot(data=CohortDeviates,aes(factor(Cohort),Residuals))+geom_boxplot(varwidth=F)
           +xlab('Cohort')+ylab('Residuals')+geom_hline(yintercept=0)+theme(axis.text.x=element_text(angle=45)))
-    dev.off()
-    
+   
+   dev.off()
     pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
-    print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot(varwidth=T)+geom_smooth(aes(group=1))
+    print(ggplot(data=MCOutput,aes(factor(Year),Value))+geom_boxplot(fill='steelblue2')
           +xlab('Year')+ylab('SPR'))
     dev.off()
     
     MCDetails<- join(MCDetails,SampleSize,by='Year')
     pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
-    print(ggplot(data=MCDetails,aes(factor(Year),FvM,fill=Samples))+geom_boxplot(varwidth=T)+geom_smooth(aes(group=1))
+    print(ggplot(data=MCDetails,aes(factor(Year),FvM),fill=Samples)+geom_boxplot(varwidth=F)
           +xlab('Year')+ylab('F/Fmsy'))  
     dev.off()
     

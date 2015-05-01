@@ -28,11 +28,11 @@ NumberOfSpecies<- 5
 
 ReserveYear<- 2007
 
-AvailableData<- c('LengthData','DensityData')
+# AvailableData<- c('LengthData','DensityData')
 
-# Assessments<- c('CatchCurve','DensityRatio','LBSPR')
+Assessments<- c('CatchCurve','DensityRatio','LBSPR')
 
-Assessments<- c('CatchCurve','DensityRatio')
+# Assessments<- c('LBSPR')
 
 
 # Assessments<- c('LBSPR')
