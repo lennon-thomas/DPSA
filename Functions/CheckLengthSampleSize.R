@@ -1,6 +1,6 @@
 CheckLengthSampleSize<- function(Data)
 {
-  #   Data<- LengthData
+#     Data<- LengthData
   Data<- subset(Data,is.na(Length)==F)
   
   SampleSize<- ddply(Data,c('Year'),summarize,SampleSize=length(Length))

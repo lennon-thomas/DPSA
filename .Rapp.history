@@ -1,0 +1,3 @@
+setwd("/Users/danovando/Desktop/Bren/SFG Work/DPSA")
+source('Run CCFRP DPSA.R')
+warnings()

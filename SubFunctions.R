@@ -19,97 +19,7 @@ PlotLifeHistory<- function()
   dev.off()
 }
 
-PlotLengthData<- function(LengthDat)
-{
-  #   LengthDat<- LengthData
-  
-  #   LengthDat$Length[LengthDat$Length==0]<- NA
-  
-  LengthDat$MPA<- as.factor(LengthDat$MPA)
-  
-  MaxYear<- max(LengthDat$Year,na.rm=T)
-  
-  LengthDat$Year<- as.factor(LengthDat$Year)
-  
-  levels(LengthDat$MPA)<- c('Fished','MPA')
-  
-  Breaks<<- seq(from=1,to=max(LengthDat$Length,na.rm=T)+5,by=2)
-  
-  LengthHistogram<- ddply(LengthDat,c('Year','MPA'),summarize,Counts=hist(Length,plot=F,breaks=Breaks)$counts,Density=hist(Length,plot=F,breaks=Breaks)$density,SizeBin=hist(Length,plot=F,breaks=Breaks)$mids)
-  
-  pdf(file=paste(FigureFolder,AssessmentName,' Length Data Analysis.pdf',sep=''))
-  
-  print(ggplot(LengthHistogram,aes(SizeBin,Counts))+
-          geom_point(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA),size=3,alpha=.6)+
-          geom_line(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA))+
-          geom_point(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA),size=3,alpha=.6)+
-          geom_line(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA))+
-          geom_vline(xintercept=Fish$Mat50,linetype = "longdash",aes(alpha=0.5))+
-          geom_vline(xintercept=Fish$Linf,linetype = "longdash",aes(alpha=0.5),color='red2')+
-          facet_wrap(~Year,as.table=F)+xlab('Length')+ylab('Count')+
-          theme(legend.title=element_blank()) ) 
-  
-  
-  
-  print(ggplot(LengthHistogram,aes(SizeBin,Density))+
-          geom_point(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA),size=3,alpha=.6)+
-          geom_line(data=subset(LengthHistogram,MPA=='Fished'),aes(color=MPA))+
-          geom_point(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA),size=3,alpha=.6)+
-          geom_line(data=subset(LengthHistogram,MPA=='MPA'),aes(color=MPA))+
-          geom_vline(xintercept=Fish$Mat50,linetype = "longdash",aes(alpha=0.5))+
-          geom_vline(xintercept=Fish$Linf,linetype = "longdash",aes(alpha=0.5),color='red2')+
-          facet_wrap(~Year,as.table=F)+xlab('Length')+ylab('Density')+
-          theme(legend.title=element_blank()) )
-  
-  print(
-    (ggplot(data=LengthDat,aes(Length,fill=MPA))+geom_density(alpha=0.6,aes(y=..count..))+
-       facet_wrap(~Year,as.table=F)+
-       geom_vline(xintercept=Fish$Mat50,linetype='longdash')+geom_vline(xintercept=Fish$Linf,linetype='longdash',color='red2')))
-  
-  
-  print(ggplot(data=LengthDat,aes(factor(Year),Length,fill=MPA))+geom_boxplot(varwidth=T,alpha=0.6))
-  
-  
-  LengthSummary<- ddply(LengthDat,c('Year','MPA'),summarize,SampleSize=length(Length))
-  
-  print(ggplot(data=LengthSummary,aes(x=Year,y=SampleSize,fill=MPA))+geom_bar(stat='identity'))
-  
-  
-  dev.off()
-  
-  write.csv(file=paste(ResultFolder,AssessmentName,' Length Data Summary.csv',sep=''),LengthSummary)
-  
-  
-}
 
-PlotDensityData<- function(DensityDat)
-{
-  #   DensityDat<- DensityData
-  
-  DensityDat$MPA<- as.factor(DensityDat$MPA)
-  
-  MaxYear<- max(DensityDat$Year,na.rm=T)
-  
-  DensityDat$Year<- as.factor(DensityDat$Year)
-  
-  levels(DensityDat$MPA)<- c('Fished','MPA')
-  
-  #   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=sum(Count,na.rm=T)/sum(SampleArea,na.rm=T),BiomassDensity=sum(Biomass/SampleArea,na.rm=T))
-  
-  DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea,na.rm=T),BiomassDensity=mean(Biomass/SampleArea,na.rm=T))
-  #Does the Mean or sum make more sense here?
-  
-  #   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea),BiomassDensity=mean(Biomass/SampleArea))
-  
-  write.csv(file=paste(ResultFolder,AssessmentName,' Density Data Summary.csv',sep=''),DensitySummary)
-  
-  pdf(file=paste(FigureFolder,AssessmentName,' Density Data Analysis.pdf',sep=''))
-  print(barchart(NumberDensity~MPA | Year,data=DensitySummary,ylab='Numbers/Area',col=c('firebrick1','skyblue3')))
-  
-  print(barchart(BiomassDensity~MPA | Year,data=DensitySummary,ylab='Biomass/Area',col=c('firebrick1','skyblue3')))
-  
-  dev.off()
-}
 
 PlotCatchData<- function(CatchDat)
 {
@@ -515,7 +425,6 @@ CalculateDensity<- function(Densities,Years,Weights,Form)
   WeightedDensity<- as.data.frame(matrix(NA,nrow=1,ncol=4))
   
   colnames(WeightedDensity)<- c('Year','MPADensity','FishedDensity','DensityRatio')	
-  
   for (y in 1:length(Years))
   {
     
@@ -531,11 +440,10 @@ CalculateDensity<- function(Densities,Years,Weights,Form)
     #     
     #     FishedDensity<- sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity[Reserve==F,DensityForm],na.rm=T)/sum(YearlyDensity$DistanceFromBorder[Reserve==F]*YearlyDensity$SampleArea[Reserve==F],na.rm=T)
     #     
-    LagDensity[y,]<- c(Years[y],MPADensity,FishedDensity,FishedDensity/MPADensity)
+    LagDensity[y,]<- data.frame(Years[y],MPADensity,FishedDensity,FishedDensity/MPADensity)
     
   }
-  
-  WeightedDensity[1,]<- c(Years[length(Years)],sum(Weights*LagDensity$MPADensity)/sum(Weights),sum(Weights*LagDensity$FishedDensity)/sum(Weights),sum(Weights*LagDensity$DensityRatio)/sum(Weights))
+  WeightedDensity[1,]<- data.frame(Years[length(Years)],sum(Weights*LagDensity$MPADensity)/sum(Weights),sum(Weights*LagDensity$FishedDensity)/sum(Weights),sum(Weights*LagDensity$DensityRatio)/sum(Weights))
   
   return(WeightedDensity)
   
