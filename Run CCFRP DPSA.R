@@ -20,7 +20,7 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'CCFRP 2.0'
+Assessment<- 'CCFRP 3.0'
 
 NumberOfSpecies<- 6
 
@@ -28,11 +28,16 @@ ReserveYear<- 2007
 
 AvailableData<- c('LengthData','DensityData')
 
-Assessments<- c('CatchCurve','DensityRatio','LBSPR')
+# Assessments<- c('CatchCurve','DensityRatio','LBSPR')
+
+Assessments<- c('CatchCurve','DensityRatio')
+
+
+# Assessments<- c('LBSPR')
 
 DefaultSD<- 0.001
 
-MinSampleSize<- 200
+MinSampleSize<- 100
 
 ### Pull in Assessment Data ###
 
@@ -67,7 +72,7 @@ SpeciesCatches$NumberSampled<- SpeciesCatches$NumberSampled*as.numeric(is.na(Spe
 
 SpeciesCatches<- SpeciesCatches[order(SpeciesCatches$NumberSampled,decreasing=T),]
 
-TopSpecies<- SpeciesCatches$CommName[SpeciesCatches$NumberSampled>0]
+TopSpecies<- SpeciesCatches$CommName[SpeciesCatches$NumberSampled>0 & is.na(SpeciesCatches$HasLifeHistory)==F]
 
 # TopSpecies<- SpeciesCatches$CommName[1:NumberOfSpecies]
 
@@ -90,7 +95,8 @@ for (s in 1:length(Sites))
   Fishes<- unique(GFD$CommName[WhereSite])
   
   for (f in 1:length(Fishes))
-  {
+#     for (f in 3)   
+    {
     
     show(Fishes[f])
     
@@ -220,7 +226,7 @@ for (s in 1:length(Sites))
           
                       
           Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight='AgeBased',WeightedRegression=1,
-                            ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=200,BootStrap=1,LifeError=0,HistInterval=1)$Output
+                            ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=100,BootStrap=1,LifeError=0,HistInterval=1)$Output
           
           DataLength<- dim(Temp)[1]
           
@@ -234,7 +240,7 @@ for (s in 1:length(Sites))
       if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
       {
                   
-        Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=1000,BootStrap=1)$Output
+        Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=200,BootStrap=1)$Output
         
         ddply(DensityData,c('Year'),summarize,huh=length(Site))
         
@@ -266,9 +272,14 @@ for (s in 1:length(Sites))
         
         if (SampleCheck$YearsWithEnoughData>0)
         {
-                    
-          Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=20,BootStrap=1,LifeError=1,LengthBins=1,ReserveYear=ReserveYear)
+                 
+          LengthQuantile<- quantile(SampleCheck$ParedData$Length,na.rm=T)
           
+          
+          Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=1,BootStrap=1,
+                        LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[2],
+                        SL50Max=LengthQuantile[4],DeltaMin=NA,DeltaMax=NA)
+
           Temp<- Temp2$Output
           
           DataLength<- dim(Temp)[1]
@@ -328,7 +339,8 @@ for (s in 1:length(Sites))
     
     show(AssessmentResults)
     
-    if (sum(AssessmentResults$Method=='CatchCurve')>0)
+    if (any(AssessmentResults$Method=='CatchCurve') & any(AssessmentResults$Method=='DensityRatio') 
+        & any(AssessmentResults$Method=='LBSPR') )
     {
       
       SummaryPanel(AssessmentResults,LengthData,Species,Sites[s],YearsToSmooth=3)

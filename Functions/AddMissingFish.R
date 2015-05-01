@@ -5,10 +5,9 @@ AddMissingFish<- function(Data)
 {
   
 #   Data<- GFD
-  
   SpeciesTable<- unique(Data [,colnames(Data)[16:dim(Data)[2]]])
-  
-  SpeciesSightings<- ddply(Data,c('Site'),summarize,SpeciesSeen=unique(CommName))
+
+  SpeciesSightings<- ddply(Data,c('Site','CommName'),summarize,There=length(CommName))
   
   SpeciesSightingsByTrip<- ddply(Data,c('sample_Idcellday'),summarize,SpeciesSeen=length(unique(CommName)))
   
@@ -23,7 +22,7 @@ AddMissingFish<- function(Data)
     
     Trips<- unique(Data$sample_Idcellday[Data$Site==Sites[s]])
     
-    SpeciesSeen<- SpeciesSightings$SpeciesSeen[SpeciesSightings$Site==Sites[s]]
+    SpeciesSeen<- SpeciesSightings$CommName[SpeciesSightings$Site==Sites[s]]
     
     for (t in 1:length(Trips))
     {

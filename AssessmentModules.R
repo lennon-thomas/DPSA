@@ -2121,7 +2121,6 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
         if (i==1) #Plot catch curves analysis on first iteration
         {
           
-          
           if (sum(TempLengthDat$MPA,na.rm=T)>0)
           {
             pdf(file=paste(FigureFolder,i,Years[y],' Catch Curve Analysis.pdf'))
@@ -2193,7 +2192,6 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     } #Close Years loop
     
   } #Close monte carlo loop
-  
   if (sum(is.na(MCDetails$Iteration)==F)>0)
   {
     
@@ -2216,7 +2214,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     MCOutput$Flag[MCOutput$Flag=='Catch-Curve not working-Negative Fishing Mortality']<- 'None'
     
     MCOutput$Flag[MCOutput$Value<0]<- 'warning-MPA slope steeper than fished slope'
-    
+
     pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
     
     p=ggplot(MCDetails,aes(factor(Year),FishingMortality/MeanMort))+geom_boxplot(outlier.shape=NA,aes(fill=SampleSize))+xlab('Year')+ylab('F/M')
@@ -2233,7 +2231,9 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
     
     p=ggplot(MCDetails,aes(factor(Year),MeanMort))+geom_boxplot(outlier.shape=NA,aes(fill=SampleSize))+xlab('Year')+ylab('M')
-    print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+#     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+    print(p)
+    
     dev.off()
     
   }
@@ -2266,7 +2266,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   Output$Flag<-TrueOutput$Flag 
   
   Output$SampleSize<- SampleSize
-  
+
   if (Iterations>1)
   {
     
@@ -2528,7 +2528,7 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   Output$SD<- NA
   
-  Output$Metric<- 'N/K'
+  Output$Metric<- 'Biomass Density Ratio'
   
   Output$Flag<-TrueOutput$Flag 
   
@@ -2584,8 +2584,14 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
   
 }
 
-LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,ReserveYear)
+LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,ReserveYear,SL50Min,SL50Max,
+                DeltaMin,DeltaMax)
 {
+ 
+
+  
+  library("R2admb")
+  
   ######################
   ###### LBSPR #########
   ######################
@@ -2650,31 +2656,17 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ###################################
   # Source LBSPR function #    
   #################################### 
-  CurrentDir<- getwd()
-  AssessDir <- paste(CurrentDir,"LBSPR",sep="/")
-  setwd(AssessDir)
-  # source("LBSPRAssessmentFun_May21.R")
-  ###################################
-  # Source all other functions needed#    
-  #################################### 
+    
+  WD<- getwd()
   
-  Call.functions.Fun    <- function(dropboxDir) {
-    cd <- dropboxDir
-    File.Path  <- paste(cd,"All_Functions", sep="/")
-    for (nm in list.files(File.Path)) {
-      source(file.path(File.Path, nm))
-    }
-  }
-  Call.functions.Fun(AssessDir)	
+  LBSPRDir <- paste(WD,"LBSPR_ADMB_Code",sep="/")
   
-  ###################################
-  # load R2ADMB and compile tpl file #    
-  ###################################
-  #install.packages("R2admb")  #You will need to install the R2admb package the first time, and make sure 
-  #the path is set so that R and admb can communicate.
-  library("R2admb")
-  compile_admb("LBSPR_AssessFun",verbose=FALSE)
-  setwd(CurrentDir)  #changes directory back to main folder.
+  
+#   setwd(LBSPRDir)
+
+#   compile_admb("lbspr",verbose=FALSE)
+  
+#   setwd(WD)  #changes directory back to main folder.
   
   ##Set Length bins
   # LengthBins <- 5 #1cm
@@ -2683,10 +2675,11 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   
   c<- 0
   
-  CatchCurveResiduals<- as.data.frame(matrix(NA,nrow=0,ncol=2))
+  CohortDeviates<- as.data.frame(matrix(NA,nrow=0,ncol=2))
   
-  AgeResiduals<- as.data.frame(matrix(NA,nrow=0,ncol=2))
+  AgeDeviates<- as.data.frame(matrix(NA,nrow=0,ncol=2))
   
+#   library(dplyr)
   
   for (i in 1:Iterations)
   {
@@ -2696,7 +2689,6 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       Fish<- BaseFish
       Fish<- ApplyLifeHistoryError()
     }
-    
     for (y in 1:length(Years)) #loop over years
     {
       #Read in the Size data and Species parameter file
@@ -2738,33 +2730,38 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         
       }
       
-      # LengthDat <- read.csv("ExampleData.csv")
-      # CatchatLength <- LengthDat$Redtail.F
       
-      # Call the Assessment Function
-      #print(paste("Pre-Funct LengthBins",LengthBins))
+     AssessPars<- BuildLBSPRPars(Fish=Fish,Mpow=0,NGTG=40,MaxSD=3,FecB=3,
+                    SL50Min=SL50Min,SL50Max=SL50Max,DeltaMin=DeltaMin,DeltaMax=DeltaMax)
+
+     LenHist<- hist(CatchatLength,breaks=seq(min(CatchatLength,na.rm=T),
+                                             max(CatchatLength,na.rm=T)+LengthBins,by=LengthBins),plot=F)
+     
+     LenFreq <- LenHist$counts/sum(LenHist$counts,na.rm=T)
+     LenMids <- LenHist$mids 
+     ADMBDir <- paste(WD,"/LBSPR_ADMB_Code",sep='')
+     runMod <- RunLBSPRAssess(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr", MaxCount=5, ADMBRead=NULL)
       
+     ResidualAnalysis<- AssessLBSPRResiduals(runMod,Fish,Years[y])
+       
+     CohortDeviates<- rbind(CohortDeviates,ResidualAnalysis$CohortDeviates)
       
-      Estimates <- LBSPR_SingleSpeciesAssessmentfun(CatchatLength,AssessDir,CurrentDir,LengthBins,Years[y],EstimatedM,Fish) #Run LBSPR in ADMB (see SubFunctions)
+     AgeDeviates<- rbind(AgeDeviates,ResidualAnalysis$AgeDeviates)
       
+      MCOutput[c,]<- data.frame(i,Years[y],'LBSPR',runMod$Estimates$Est[runMod$Estimates$Par=='SPR'],NA,NA,
+                                runMod$Estimates$SD[runMod$Estimates$Par=='SPR'],'SPR',Flag,stringsAsFactors=F)
       
-      CatchCurveResiduals<- rbind(CatchCurveResiduals,Estimates$CatchCurveResiduals)
-      
-      
-      AgeResiduals<- rbind(AgeResiduals,Estimates$AgeResiduals)
-      
-      MCOutput[c,]<- c(i,Estimates$Output)
-      
-      MCDetails[c,]<- c(i,Estimates$Details)
+      MCDetails[c,]<- data.frame(i,Years[y],runMod$Estimates$Est[runMod$Estimates$Par=='FMpar'],
+                                 runMod$Estimates$Est[runMod$Estimates$Par=='SL50'],
+                                 runMod$Estimates$Est[runMod$Estimates$Par=='SL95'],stringsAsFactors=F)
       # Sel50, Sel95, F/M, and SPR stored in Estimates.
     } #Close year loop	
   } #Close iteration loop
-  
-  
+#   detach("package:dplyr", unload=TRUE)
   ########################################
   ###### Process Monte Carlo Data #########
   #########################################
-  
+
   SampleSize<- ddply(LengthDat,c('Year'),summarize,Samples=length(Length))
   
   TrueIteration<- MCOutput$Iteration==1
@@ -2774,7 +2771,6 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   TrueDetails<- MCDetails[TrueIteration,]
   
   # MCOutput<- MCOutput[TrueIteration==F,]
-  
   Output$Year<- Years
   
   Output$Method<- 'LBSPR'
@@ -2791,12 +2787,12 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   
   Output$Flag<-TrueOutput$Flag 
   
-  Output$SampleSize<- SampleSize
+  Output$SampleSize<- SampleSize$Samples
   
+  MCOutput<- join(MCOutput,SampleSize,by='Year')  
   if (Iterations>1)
   {
     
-    MCOutput<- join(MCOutput,SampleSize,by='Year')  
     
     MCOutput$value<- MCOutput$Value
     
@@ -2817,15 +2813,15 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   if (any(!is.na(MCOutput$Value)))
   {
     pdf(file=paste(FigureFolder,'Age Residuals Boxplots.pdf',sep=''))
-    print(ggplot(data=AgeResiduals,aes(factor(Age),Residuals))+geom_boxplot(varwidth=T)
+    print(ggplot(data=AgeDeviates,aes(factor(Age),Residuals))+geom_boxplot(varwidth=T)
           +xlab('Age')+ylab('Residuals')+geom_hline(yintercept=0))
     dev.off()
     
     pdf(file=paste(FigureFolder,'Cohort Residuals Boxplots.pdf',sep=''))
-    print(ggplot(data=CatchCurveResiduals,aes(factor(Cohort),Residuals))+geom_boxplot(varwidth=T)
+    print(ggplot(data=CohortDeviates,aes(factor(Cohort),Residuals))+geom_boxplot(varwidth=T)
           +xlab('Cohort')+ylab('Residuals')+geom_hline(yintercept=0)+theme(axis.text.x=element_text(angle=45)))
     dev.off()
-    
+
     pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
     print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot(varwidth=T)+geom_smooth(aes(group=1))
           +xlab('Year')+ylab('SPR'))
