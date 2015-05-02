@@ -2215,17 +2215,19 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     
     MCOutput$Flag[MCOutput$Value<0]<- 'warning-MPA slope steeper than fished slope'
     
+    if (length(unique(MCOutput$Year))>1)
+    {
     
     pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
     
-    p=ggplot(MCDetails,aes(factor(Year),FvM))+geom_boxplot(fill=SampleSize)+xlab('Year')+ylab('F/M')
+    p=ggplot(MCDetails,aes(factor(Year),FvM,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('F/M')
     print(p)
     dev.off()
     
     
     pdf(file=paste(FigureFolder,' Catch Curve F Boxplots.pdf',sep=''))
     
-    p=ggplot(MCDetails,aes(factor(Year),FishingMortality))+geom_boxplot(fill=SampleSize)+xlab('Year')+ylab('F')
+    p=ggplot(MCDetails,aes(factor(Year),FishingMortality,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('F')
     print(p)
     #+scale_y_continuous(limits = quantile(MCDetails$FishingMortality, c(0.1, 0.9),na.rm=T)))
     
@@ -2233,11 +2235,38 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     
     pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
     
-    p=ggplot(MCDetails,aes(factor(Year),MeanMort))+geom_boxplot(fill=SampleSize)+xlab('Year')+ylab('M')
+    p=ggplot(MCDetails,aes(factor(Year),MeanMort,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('M')
     #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
     print(p)
     
     dev.off()
+    }
+    if (length(unique(MCOutput$Year))==1)
+    {
+      
+      pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
+      
+      p=ggplot(MCDetails,aes(factor(Year),FvM))+geom_boxplot()+xlab('Year')+ylab('F/M')
+      print(p)
+      dev.off()
+      
+      
+      pdf(file=paste(FigureFolder,' Catch Curve F Boxplots.pdf',sep=''))
+      
+      p=ggplot(MCDetails,aes(factor(Year),FishingMortality))+geom_boxplot()+xlab('Year')+ylab('F')
+      print(p)
+      #+scale_y_continuous(limits = quantile(MCDetails$FishingMortality, c(0.1, 0.9),na.rm=T)))
+      
+      dev.off()
+      
+      pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
+      
+      p=ggplot(MCDetails,aes(factor(Year),MeanMort))+geom_boxplot()+xlab('Year')+ylab('M')
+      #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+      print(p)
+      
+      dev.off()
+    }
     
   }
   
@@ -2827,8 +2856,11 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
           +xlab('Cohort')+ylab('Residuals')+geom_hline(yintercept=0)+theme(axis.text.x=element_text(angle=45)))
    
    dev.off()
+   
+   if (length(unique(MCOutput$Year))>1)
+   {
     pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
-    print(ggplot(data=MCOutput,aes(factor(Year),Value))+geom_boxplot(fill='steelblue2')
+    print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot()
           +xlab('Year')+ylab('SPR'))
     dev.off()
     
@@ -2837,6 +2869,20 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
     print(ggplot(data=MCDetails,aes(factor(Year),FvM),fill=Samples)+geom_boxplot(varwidth=F)
           +xlab('Year')+ylab('F/Fmsy'))  
     dev.off()
+   }
+   if (length(unique(MCOutput$Year))>1)
+   {
+     pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
+     print(ggplot(data=MCOutput,aes(factor(Year),Value))+geom_boxplot()
+           +xlab('Year')+ylab('SPR'))
+     dev.off()
+     
+     MCDetails<- join(MCDetails,SampleSize,by='Year')
+     pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
+     print(ggplot(data=MCDetails,aes(factor(Year),FvM))+geom_boxplot(varwidth=F)
+           +xlab('Year')+ylab('F/Fmsy'))  
+     dev.off()
+   }
     
   }
   Fish<- BaseFish

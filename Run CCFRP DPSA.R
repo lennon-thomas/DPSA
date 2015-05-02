@@ -22,7 +22,7 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'CCFRP 4.0'
+Assessment<- 'CCFRP 4.1'
 
 NumberOfSpecies<- 5
 
@@ -39,12 +39,14 @@ Assessments<- c('CatchCurve','DensityRatio','LBSPR')
 
 DefaultSD<- 0.001
 
-MinSampleSize<- 200
+MinSampleSize<- 150
 
 ### Pull in Assessment Data ###
 
 
 GFD<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/For_Jono_CCFRPdata_April2014.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
+
+GFD<- subset(GFD,is.na(Year)==F)
 
 SpeciesNames<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/Fish Species.csv',stringsAsFactors=F) #Read species names
 
@@ -69,6 +71,9 @@ GFD$AgeMatSource<- NA
 GFD$t0[is.na(GFD$t0)]<- 0
 
 SpeciesCatches<- ddply(GFD,c('CommName'),summarize,NumberSampled=length(length_cm),HasLifeHistory=mean(vbk))
+
+ddply(GFD,c('Year','CommName'),summarize,Number=length(length_cm[length_cm>0]))
+
 
 SpeciesCatches$NumberSampled<- SpeciesCatches$NumberSampled*as.numeric(is.na(SpeciesCatches$HasLifeHistory)==F)*as.numeric((SpeciesCatches$NumberSampled)>MinSampleSize)
 
@@ -96,7 +101,10 @@ for (s in 1:length(Sites))
   
   if (Sites[s]=='All'){WhereSite<- rep(1,dim(GFD)[1])==1}
   
-  Fishes<- unique(GFD$CommName[WhereSite])
+  
+  TopSpecies<- ddply(GFD[WhereSite,],c('CommName'),summarize,NumSamples=length(length_cm[length_cm>0]))
+  
+  Fishes<- subset(TopSpecies,NumSamples>MinSampleSize)$CommName
   
   for (f in 1:length(Fishes))
 #     for (f in 6)   
