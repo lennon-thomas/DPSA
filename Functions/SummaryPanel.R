@@ -27,14 +27,17 @@ SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth)
 
   AssessData$UpperCI[is.na(AssessData$UpperCI)]<- AssessData$Value[is.na(AssessData$UpperCI)]
   
+#   FPlot<- (ggplot(data=subset(AssessData,Method=='CatchCurve'),aes(x=Year,y=Value))+
+#     geom_smooth(se=F,size=2)+geom_errorbar(limits)+ylab('F/Fmsy')+geom_hline(yintercept=1))
+
+  FPlot<- (ggplot(data=subset(AssessData,(Method=='CatchCurve' | Method=='LBSPR') & Metric=='FvM'),aes(x=Year,y=Value,color=Method))+
+             geom_smooth(se=F,size=2)+geom_errorbar(limits)+ylab('F/Fmsy')+geom_hline(yintercept=1))
   
-  FPlot<- (ggplot(data=subset(AssessData,Method=='CatchCurve'),aes(x=Year,y=Value))+
-    geom_smooth(se=F,size=2)+geom_errorbar(limits)+ylab('F/Fmsy')+geom_hline(yintercept=1))
-    
+  
   DensityPlot<- (ggplot(data=subset(AssessData,Method=='DensityRatio'),aes(x=Year,y=Value))+
              geom_smooth(se=F,size=2,color='green4')+geom_errorbar(limits)+ylab('Density Ratio')+geom_hline(yintercept=1))
   
-  SPRPlot<- (ggplot(data=subset(AssessData,Method=='LBSPR'),aes(x=Year,y=Value))+
+  SPRPlot<- (ggplot(data=subset(AssessData,Method=='LBSPR' & Metric=='SPR'),aes(x=Year,y=Value))+
                    geom_smooth(se=F,size=2,color='red2')+geom_errorbar(limits)+ylab('SPR')+geom_hline(yintercept=0.4))
   
 grid.arrange(LengthPlot,FPlot,DensityPlot,SPRPlot

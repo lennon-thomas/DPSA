@@ -2590,7 +2590,7 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
       LowerCI<- TempValue[Bottom]
       
       UpperCI<- TempValue[Top]
-      browser()
+
       SD<- sd(TempValue[Bottom:Top],na.rm=T)
       Output[y,]<- I(data.frame(Years[y],'DensityRatio',SampleSize$SampleSize[y],TrueOutput$Value[y],LowerCI,UpperCI,SD,'N/K',TrueOutput$Flag[y],stringsAsFactors=F))
       
@@ -2619,12 +2619,10 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
 }
 
 LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,ReserveYear,SL50Min,SL50Max,
-                DeltaMin,DeltaMax)
+                DeltaMin,DeltaMax,IncludeReserve)
 {
   
   
-  
-  library("R2admb")
   
   ######################
   ###### LBSPR #########
@@ -2698,7 +2696,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   
   #   setwd(LBSPRDir)
   
-  #   compile_admb("lbspr",verbose=FALSE)
+#      compile_admb("lbspr",verbose=FALSE)
   
   #   setwd(WD)  #changes directory back to main folder.
   
@@ -2735,10 +2733,15 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       AnyMPA<- sum(LengthDat$MPA[WhereAll])>0
       
       ## Convert lenth data into appropriate format-- vector of raw size data
+      if (IncludeReserve==F)
+      {
       CatchatLength <- LengthDat$Length[WhereFished]
-      
+      }
+      if (IncludeReserve==T)
+      {
+        CatchatLength <- LengthDat$Length[WhereAll]
+      }
       SampleSize[y]<- length(CatchatLength)
-      # CatchatLength <- LengthDat$Length[WhereAll]
       
       if (i>1 & BootStrap==1) #Bootstrap length data 
       {
@@ -2764,8 +2767,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         
       }
       
-      
-      AssessPars<- BuildLBSPRPars(Fish=Fish,Mpow=0,NGTG=40,MaxSD=3,FecB=3,
+      AssessPars<- BuildLBSPRPars(Fish=Fish,Mpow=0,NGTG=70,MaxSD=3,FecB=3,
                                   SL50Min=SL50Min,SL50Max=SL50Max,DeltaMin=DeltaMin,DeltaMax=DeltaMax)
       
       LenHist<- hist(CatchatLength,breaks=seq(min(CatchatLength,na.rm=T),
@@ -2774,20 +2776,43 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       LenFreq <- LenHist$counts/sum(LenHist$counts,na.rm=T)
       LenMids <- LenHist$mids 
       ADMBDir <- paste(WD,"/LBSPR_ADMB_Code",sep='')
-      runMod <- RunLBSPRAssess(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr", MaxCount=5, ADMBRead=NULL)
+      runMod <- RunLBSPRAssess(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr", MaxCount=10, ADMBRead=NULL)
       
+      
+      if (runMod$ModelFailed==T)
+      {
+        pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
+        plot(LenMids,LenFreq)
+        text(x=mean(LenMids),y=mean(LenFreq),'LBSPR Model Failed',cex=3)      
+        dev.off()
+      }
+      if (runMod$ModelFailed==F)
+      {
+      FitDiagnostic<- data.frame(runMod$Bins,runMod$Obs,runMod$Pred,runMod$Unfished)
+      colnames(FitDiagnostic)<- c('Length','Observed','Predicted','Unfished')
+      
+      FitDiagnostic<- gather(FitDiagnostic,Model,Proportion,2:4)
+      
+      Selectivity<- runMod$Estimates %>% subset(Par=='SL50' | Par=='SL95')
+                                                  
+      
+      pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
+      print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
+            + geom_vline(xintercept=Selectivity$Est))
+      dev.off()
       ResidualAnalysis<- AssessLBSPRResiduals(runMod,Fish,Years[y])
       
       CohortDeviates<- rbind(CohortDeviates,ResidualAnalysis$CohortDeviates)
       
       AgeDeviates<- rbind(AgeDeviates,ResidualAnalysis$AgeDeviates)
-      
+
       MCOutput[c,]<- data.frame(i,Years[y],'LBSPR',runMod$Estimates$Est[runMod$Estimates$Par=='SPR'],NA,NA,
                                 runMod$Estimates$SD[runMod$Estimates$Par=='SPR'],'SPR',Flag,stringsAsFactors=F)
       
       MCDetails[c,]<- data.frame(i,Years[y],runMod$Estimates$Est[runMod$Estimates$Par=='FMpar'],
                                  runMod$Estimates$Est[runMod$Estimates$Par=='SL50'],
                                  runMod$Estimates$Est[runMod$Estimates$Par=='SL95'],stringsAsFactors=F)
+    }
       # Sel50, Sel95, F/M, and SPR stored in Estimates.
     } #Close year loop	
   } #Close iteration loop
@@ -2795,7 +2820,6 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ########################################
   ###### Process Monte Carlo Data #########
   #########################################
-  
   SampleSize<- ddply(LengthDat,c('Year'),summarize,Samples=length(Length))
   
   TrueIteration<- MCOutput$Iteration==1
@@ -2824,6 +2848,10 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   Output$SampleSize<- SampleSize$Samples
   
   MCOutput<- join(MCOutput,SampleSize,by='Year')  
+  
+  FOutput<- ddply(MCDetails,c('Year'),summarize,Method='LBSPR',SampleSize=NA,Value=mean(FvM,na.rm=T),LowerCI=NA,UpperCI=NA,
+                    SD=NA,Metric='FvM',Flag=NA)
+  
   if (Iterations>1)
   {
     
@@ -2834,11 +2862,18 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
                    LowerCI=quantile(value,0.025,na.rm=T),UpperCI=quantile(value,0.975,na.rm=T),SD=sd(value,na.rm=T),
                    Metric='SPR',Flag='None')
     
+    FOutput<- ddply(MCDetails,c('Year'),summarize,Method='LBSPR',SampleSize=NA,Value=mean(FvM,na.rm=T),
+                    LowerCI=quantile(FvM,0.025,na.rm=T),UpperCI=quantile(FvM,0.975,na.rm=T),
+                    SD=sd(FvM,na.rm=T),Metric='FvM',Flag=NA)
+    
     Output$Flag<-TrueOutput$Flag 
     
     MCOutput$value<- NULL
     
   }
+  
+  FOutput$SampleSize<- Output$SampleSize
+  
   
   ######################
   ###### Make Plots #########
@@ -2886,7 +2921,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
     
   }
   Fish<- BaseFish
-  
+  Output<- rbind(Output,FOutput)
   return(list(Output=Output,Details=MCDetails))
 }
 

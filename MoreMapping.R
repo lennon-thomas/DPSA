@@ -1,3 +1,14 @@
+quartz()
+CentralCoast<- get_map(location=c(lon=-122.42725,lat=37.2425),zoom=7,maptype='satellite')
+
+ggmap(CentralCoast, fullpage = TRUE)
+
+
+
+violent_crimes$offense <- factor(violent_crimes$offense,+   levels = c("robbery", "aggravated assault", "rape", "murder"))
+
+
+
 ggplot(R28meansd, aes(treat, meanbiov, shape=factor(disp))) + 
   geom_point(size=5,position=pd) + 
   geom_errorbar(aes(ymin=meanbiov-sdbiov,ymax=meanbiov+sdbiov), 

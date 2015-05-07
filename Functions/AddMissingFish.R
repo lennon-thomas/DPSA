@@ -5,7 +5,9 @@ AddMissingFish<- function(Data)
 {
   
 #   Data<- GFD
-  SpeciesTable<- unique(Data [,colnames(Data)[16:dim(Data)[2]]])
+  LifeStart<- which(colnames(Data)=='Rockfish')
+  
+  SpeciesTable<- unique(Data [,colnames(Data)[LifeStart:dim(Data)[2]]])
 
   SpeciesSightings<- ddply(Data,c('Site','CommName'),summarize,There=length(CommName))
   
@@ -14,7 +16,7 @@ AddMissingFish<- function(Data)
   BlankVars<- colnames(Data)
   
   BlankVars<- BlankVars[!(BlankVars%in%c('Year','Month','Site','sample_Idcellday','Sample_Type','Sample_Area','Area_units',
-                                         'Angler_hours','MPA_or_REF','GRID_ID_cell','Meters.to.MPA.border'))]
+                                         'Angler_hours','MPA_or_REF','GRID_ID_cell','Meters.to.MPA.border','MeanLon','MeanLat'))]
   Sites<- unique(Data$Site)
   
   for (s in 1:length(Sites))
@@ -42,8 +44,8 @@ AddMissingFish<- function(Data)
         MissingData<- SpeciesTable[SpeciesTable$CommName %in% SpeciesMissing,]
         
         BlankTrip[,'length_cm']<- 0
-        
-        BlankTrip [,colnames(Data)[16:dim(Data)[2]]]<- MissingData
+
+        BlankTrip [,colnames(MissingData)]<- MissingData
         
         Data<- rbind(Data,BlankTrip)
         

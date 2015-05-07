@@ -14,6 +14,12 @@ library(plyr)
 # library(grid)
 library(gridExtra)
 library(ggplot2)
+library(dplyr)
+library(ggmap)
+library(animation)
+library(R2admb)
+library(tidyr)
+
 
 sapply(list.files(pattern="[.]R$", path="Functions", full.names=TRUE), source)
 
@@ -22,41 +28,49 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'CCFRP 4.1'
+Assessment<- 'CCFRP 5.0'
+
+RunAssessments<- FALSE
 
 NumberOfSpecies<- 5
 
 ReserveYear<- 2007
 
-# AvailableData<- c('LengthData','DensityData')
-
 Assessments<- c('CatchCurve','DensityRatio','LBSPR')
-
-# Assessments<- c('LBSPR')
-
-
-# Assessments<- c('LBSPR')
 
 DefaultSD<- 0.001
 
 MinSampleSize<- 150
 
+MPAColor<- "#1b9e77"
+
+FishedColor<- "#d95f02"
+
 ### Pull in Assessment Data ###
 
-
-GFD<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/For_Jono_CCFRPdata_April2014.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
+GFD<- read.csv('CCFRP Data/For_Jono_CCFRPdata_April2014.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
 
 GFD<- subset(GFD,is.na(Year)==F)
 
-SpeciesNames<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/Fish Species.csv',stringsAsFactors=F) #Read species names
+Locations<- read.csv('CCFRP Data/CCFRP_2014Data_withGPS.csv')
 
-LifeHistory<- read.csv('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/CCFRP Life History 2.csv',stringsAsFactors=F) #Read life history
+Locations$SiteId<- paste(Locations$Area,Locations$Site..MPA..REF,sep='-')
+
+SiteGPS<- ddply(Locations,c('SiteId'),summarize,MeanLon=mean(Lon.Center.Point,na.rm=T),MeanLat=mean(Lat.Center.Point,na.rm=T))
+
+GFD$SiteId<- paste(GFD$Site,GFD$MPA_or_REF,sep='-')
+
+GFD<- plyr::join(GFD,SiteGPS,by='SiteId')
+
+SpeciesNames<- read.csv('CCFRP Data/Fish Species.csv',stringsAsFactors=F) #Read species names
+
+LifeHistory<- read.csv('CCFRP Data/CCFRP Life History 2.csv',stringsAsFactors=F) #Read life history
 
 LifeHistory<- LifeHistory[,2:dim(LifeHistory)[2]]
 
 LifeData<- colnames(LifeHistory)[3:dim(LifeHistory)[2]]
 
-source('/Users/danovando/Desktop/Bren/SFG Work/Consulting/TNC/CCFRP/Default_Controlfile.R')
+source('CCFRP Data/Default_Controlfile.R')
 
 GFD<- join(GFD,SpeciesNames,by='Species.Code')
 
@@ -72,18 +86,11 @@ GFD$t0[is.na(GFD$t0)]<- 0
 
 SpeciesCatches<- ddply(GFD,c('CommName'),summarize,NumberSampled=length(length_cm),HasLifeHistory=mean(vbk))
 
-ddply(GFD,c('Year','CommName'),summarize,Number=length(length_cm[length_cm>0]))
-
-
 SpeciesCatches$NumberSampled<- SpeciesCatches$NumberSampled*as.numeric(is.na(SpeciesCatches$HasLifeHistory)==F)*as.numeric((SpeciesCatches$NumberSampled)>MinSampleSize)
 
 SpeciesCatches<- SpeciesCatches[order(SpeciesCatches$NumberSampled,decreasing=T),]
 
 TopSpecies<- SpeciesCatches$CommName[SpeciesCatches$NumberSampled>0 & is.na(SpeciesCatches$HasLifeHistory)==F]
-
-# TopSpecies<- SpeciesCatches$CommName[1:NumberOfSpecies]
-
-#  TopSpecies<- LifeHistory$CommName[LifeHistory$HasLifeHistory==1]
 
 GFD<- GFD[GFD$CommName %in% TopSpecies,]
 
@@ -91,10 +98,17 @@ GFD<- AddMissingFish(GFD)
 
 Sites<- c('All',unique(GFD$Site))
 
-for (s in 1:length(Sites))
-#   for (s in 3)
-    
-  {
+# Sites<- c('All')
+
+AssessmentResults<- list()
+
+Counter<- 0
+
+if (RunAssessments==T)
+{
+
+for (s in 1:length(Sites))    
+{
   
   show(Sites[s])
   WhereSite<- GFD$Site==Sites[s]
@@ -107,7 +121,8 @@ for (s in 1:length(Sites))
   Fishes<- subset(TopSpecies,NumSamples>MinSampleSize)$CommName
   
   for (f in 1:length(Fishes))
-#     for (f in 6)   
+#     for (f in 2)
+      
     {
     
     show(Fishes[f])
@@ -131,15 +146,17 @@ for (s in 1:length(Sites))
     
     SpeciesLifeHistory<- iGFD[1,colnames(iGFD) %in% LifeData]
     
-    for (l in 1:length(LifeData))
+    HasLifeHistory<- SpeciesLifeHistory[which(is.na(SpeciesLifeHistory)==F)]
+
+    HasLife<- colnames(HasLifeHistory)
+    
+    for (l in 1:length(HasLife))
     {
-      WhereLife<- which(names(Fish)==LifeData[l])
+      WhereLife<- which(names(Fish)==HasLife[l])
       
-      Fish[[WhereLife]]<- as.numeric(SpeciesLifeHistory[l])  
+      Fish[[WhereLife]]<- as.numeric(HasLifeHistory[l])  
     }
-    
-    #     Fish$M<- log(0.01)/-as.numeric(Fish$MaxAge)
-    
+        
     Fish$M<- Fish$vbk*Fish$MvK
     
     if (is.na(Fish$MaxAge))
@@ -147,25 +164,24 @@ for (s in 1:length(Sites))
       Fish$MaxAge<- -log(0.01)/Fish$M
     }
     
-    
-    if (is.na(SpeciesLifeHistory$Mat50) ) #Use Prince et al. 2014 LHI
+    if (is.na(SpeciesLifeHistory$Mat50) | SpeciesLifeHistory$Mat50>(SpeciesLifeHistory$Linf* SpeciesLifeHistory$LengthMatRatio) ) #Use Prince et al. 2014 LHI
     {
       Fish$Mat50<- Fish$Linf*Fish$LengthMatRatio
       
-      Fish$Mat95<- as.numeric(1.05*Fish$Mat50)
+      Fish$Mat95<- as.numeric(1.1*Fish$Mat50)
     }
     
     if (is.na(SpeciesLifeHistory$AgeMat50)==F)
     {
       Fish$Mat50<- LengthAtAge(SpeciesLifeHistory$AgeMat50,Fish,0)
       
-      Fish$Mat95<- as.numeric(1.05*Fish$Mat50)
+      Fish$Mat95<- as.numeric(1.1*Fish$Mat50)
     }
     
-    Fish$Mat95<- as.numeric(1.05*Fish$Mat50)
+    Fish$Mat95<- as.numeric(1.1*Fish$Mat50)
     
     ReformData<- FormatCCFRPData(iGFD)
-    
+
     LengthData<- ReformData$LengthData
     
     DensityData<- ReformData$DensityData
@@ -177,7 +193,6 @@ for (s in 1:length(Sites))
     FigureFolder<- paste(Directory,'Figures/',sep='')
     
     ResultFolder<- paste(Directory,'Results/',sep='')
-
     
     if (file.exists(FigureFolder)==F)
     {
@@ -186,31 +201,30 @@ for (s in 1:length(Sites))
       dir.create(ResultFolder,recursive=T)
     }
     
-
+    write.csv(file=paste(ResultFolder,Species,' Life History.csv',sep=''),as.data.frame(Fish))
+    
     PlotLifeHistory()
+    
     PlotLengthData(LengthData,FigureFolder,Fish,Species,Sites[s])
+    
     PlotDensityData(DensityData,FigureFolder,Fish,Species,Sites[s])
-      
-#     for (d in 1:length(AvailableData)) #Read in available data
-#     {
-#       eval(parse(text=paste('Plot',AvailableData[d],'(',AvailableData[d],')',sep='')))
-#     }
+    
+    MapCCFRP(ReformData)
     
     ### Run Assessments ###
     
-    AssessmentResults<- as.data.frame(matrix(NA,nrow=length(Assessments)*10,ncol=9))
-    
-    colnames(AssessmentResults)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
-    
-    AssessmentResults$Year<- as.numeric(AssessmentResults$Year)
-    
-    Count<-0
+    #     AssessmentResults<- as.data.frame(matrix(NA,nrow=length(Assessments)*10,ncol=9))
+    #     
+    #     colnames(AssessmentResults)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
+    #     
+    #     AssessmentResults$Year<- as.numeric(AssessmentResults$Year)
     
     Fish$LHITol<- 0.99
-        
+    
     for (a in 1:length(Assessments)) #Loop over possible assessments, store in Assessment results. Many assessments have more detailed outputs than can also be accessed 
     {
       
+      Counter<- Counter+1
       if (Assessments[a]=='LBAR') #Run LBAR assessment
       {
         
@@ -218,15 +232,15 @@ for (s in 1:length(Sites))
         
         if (SampleCheck$YearsWithEnoughData>0)
         {
-
-            
+          
+          
           Temp<- LBAR(SampleCheck$ParedData,LagLength=1,Weight=0.2,IncludeMPA=0,ReserveYr=ReserveYear,OutsideBoundYr=NA,Iterations=1000,
                       BootStrap=1,LifeError=1,Lc=NA)$Output		
-          DataLength<- dim(Temp)[1]
           
-          AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
+          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+            rename(Site=Sites.s.,Assessment=Assessments.a.)
           
-          Count<- Count+DataLength	
+          AssessmentResults[[Counter]]<-StoreAssess
         }
       }
       
@@ -238,29 +252,28 @@ for (s in 1:length(Sites))
         if (SampleCheck$YearsWithEnoughData>0)
         {
           
-                      
+          
           Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight='AgeBased',WeightedRegression=1,
                             ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=200,BootStrap=1,LifeError=0,HistInterval=1)$Output
           
-          DataLength<- dim(Temp)[1]
+          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+            rename(Site=Sites.s.,Assessment=Assessments.a.)
           
-          AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
+          AssessmentResults[[Counter]]<-StoreAssess
           
-          Count<- Count+DataLength
         }
       }
       
       
       if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
       {
-                  
+        
         Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=1,BootStrap=0)$Output
-                
-        DataLength<- dim(Temp)[1]
         
-        AssessmentResults[(Count+1):(Count+DataLength),]<- Temp	
+        StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+          rename(Site=Sites.s.,Assessment=Assessments.a.)
         
-        Count<- Count+DataLength
+        AssessmentResults[[Counter]]<-StoreAssess
       }
       
       if (Assessments[a]=='CatchMSY')
@@ -269,11 +282,10 @@ for (s in 1:length(Sites))
         
         Temp<- Temp2$Output
         
-        DataLength<- dim(Temp)[1]
+        StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+          rename(Site=Sites.s.,Assessment=Assessments.a.)
         
-        AssessmentResults[(Count+1):(Count+DataLength),]<- Temp		
-        
-        Count<- Count+DataLength
+        AssessmentResults[[Counter]]<-StoreAssess
         
       }
       
@@ -284,21 +296,25 @@ for (s in 1:length(Sites))
         
         if (SampleCheck$YearsWithEnoughData>0)
         {
-                 
+          
           LengthQuantile<- quantile(SampleCheck$ParedData$Length,na.rm=T)
           
           
           Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=1,BootStrap=1,
-                        LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[2],
-                        SL50Max=LengthQuantile[4],DeltaMin=NA,DeltaMax=NA)
+                        LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
+                        SL50Max=LengthQuantile[2],DeltaMin=NA,DeltaMax=NA,IncludeReserve=TRUE)
+          
+
+#           Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=1,BootStrap=1,
+#                         LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=NA,
+#                         SL50Max=NA,DeltaMin=NA,DeltaMax=NA)
 
           Temp<- Temp2$Output
           
-          DataLength<- dim(Temp)[1]
+          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+            rename(Site=Sites.s.,Assessment=Assessments.a.)
           
-          AssessmentResults[(Count+1):(Count+DataLength),]<- Temp		
-          
-          Count<- Count+DataLength
+          AssessmentResults[[Counter]]<-StoreAssess
         }
       }
       
@@ -328,11 +344,10 @@ for (s in 1:length(Sites))
         
         Temp<- Temp2$Output
         
-        DataLength<- dim(Temp)[1]
+        StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+          rename(Site=Sites.s.,Assessment=Assessments.a.)
         
-        AssessmentResults[(Count+1):(Count+DataLength),]<- Temp		
-        
-        Count<- Count+DataLength
+        AssessmentResults[[Counter]]<-StoreAssess
       }
       
       
@@ -340,30 +355,25 @@ for (s in 1:length(Sites))
       
     }
     
-    AssessmentResults<- AssessmentResults[is.na(AssessmentResults$Year)==F,]
-    AssessmentResults$Year<- as.numeric(AssessmentResults$Year)
-    AssessmentResults$Value<- as.numeric(AssessmentResults$Value)
-    AssessmentResults$LowerCI<- as.numeric(AssessmentResults$LowerCI)
-    AssessmentResults$UpperCI<- as.numeric(AssessmentResults$UpperCI)
-    AssessmentResults$SD<- as.numeric(AssessmentResults$SD)
+    CurrentResults<- ldply(AssessmentResults) %>% subset(Species==Fishes[f] & Site==Sites[s])
     
-    AssessmentResults[,4:7]<- round(AssessmentResults[,4:7],2)
-    
-    show(AssessmentResults)
-    
-    if (any(AssessmentResults$Method=='CatchCurve') & any(AssessmentResults$Method=='DensityRatio') 
-        & any(AssessmentResults$Method=='LBSPR') )
+    if (any(CurrentResults$Assessment=='CatchCurve') & any(CurrentResults$Assessment=='DensityRatio') 
+        & any(CurrentResults$Assessment=='LBSPR') )
     {
       
-      SummaryPanel(AssessmentResults,LengthData,Species,Sites[s],YearsToSmooth=3)
+      SummaryPanel(CurrentResults,LengthData,Species,Sites[s],YearsToSmooth=3)
       
     }
     save.image(file=paste(ResultFolder,AssessmentName,'_Settings.RData',sep='')) #Save settings used to produce current results
-    write.csv(file=paste(ResultFolder,AssessmentName,'_Results.csv',sep=''),AssessmentResults) #Save current results
+    write.csv(file=paste(ResultFolder,AssessmentName,'_Results.csv',sep=''),CurrentResults) #Save current results
     
   } #Close species  (f) loop
 } #Close sites (s) loop
 
 
-
-
+save(file=paste(Assessment,'/Assessment Results.Rdata',sep=''),AssessmentResults)
+}
+if (RunAssessments==F)
+{
+  try(load(file=paste(Assessment,'/Assessment Results.Rdata',sep='')))
+}

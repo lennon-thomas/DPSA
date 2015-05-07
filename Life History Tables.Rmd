@@ -1,0 +1,27 @@
+---
+title: "Life History Summaries"
+output: pdf_document
+---
+
+```{r,echo=F,message=FALSE}
+
+
+Species<- list.files('CCFRP 5.0/All/')
+
+library(knitr)
+library(plyr)
+library(dplyr)
+Tab<- list()
+for (s in 1:length(Species))
+  {
+  
+  Tab[[s]]<- data.frame(Species[s],(read.csv(paste('CCFRP 4.3/All/',Species[s],'/Results/',Species[s],' Life History.csv',sep=''))))
+  
+
+}
+
+FlatTab<- ldply(Tab)[,c('Species.s.','vbk','Linf','MaxAge','M','Mat50','Mat95')]
+
+    kable(FlatTab,caption='Life history parameters used for assessment of CCFRP Data',digits=2)
+
+```
