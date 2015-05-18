@@ -50,69 +50,45 @@ PlotCatchData<- function(CatchDat)
 ApplyLifeHistoryError<- function()
 {
   
-  LHI_Error <- 1.1
+#   LHI_Error <- 1.1
   
-  while(LHI_Error>Fish$LHITol) # Only accept values that don't violate LHI too much
-  {
+#   while(LHI_Error>Fish$LHITol) # Only accept values that don't violate LHI too much
+#   {
     NewFish<- Fish
-    
-    # LengthError<- abs(rnorm(1,mean=1,sd=Fish$LengthError))
-    
-    # hist((rnorm(2000,mean=1,sd=Fish$LengthError)))	
-    
-    # MortalityError<- abs(rnorm(1,mean=1,sd=Fish$MortalityError))
-    
-    # NewFish$vbk<- Fish$vbk*(LengthError)
     
     NewFish$vbk<- rlnorm(1,log(Fish$vbk),Fish$LengthError)
     
-    # NewFish$Linf<- Fish$Linf*(LengthError)
+    NewFish$MvK<- runif(1,NewFish$MinMvK,NewFish$MaxMvK)
+    
+    NewFish$M<- NewFish$vbk * NewFish$MvK
+    
+#     NewFish$M<-rlnorm(1,log(Fish$M),(Fish$MortalityError))
     
     NewFish$Linf<- rlnorm(1,log(Fish$Linf),Fish$LengthError)
     
-    NewFish$Mat50<- rlnorm(1,log(Fish$Mat50),(Fish$LengthError))
-    
-    NewFish$Mat95<- rlnorm(1,log(Fish$Mat95),(Fish$LengthError))
-    
-    if (NewFish$Mat95<NewFish$Mat50)
-    {
-      NewFish$Mat95<- NewFish$Mat50+.01
-    }
-    
-    if (Fish$t0!=0)
-    {
-      NewFish$t0<- rnorm(1,(Fish$t0),(Fish$LengthError))
-    }
-    
-    
-    # # 		 NewFish$Mat50<- Fish$Mat50*(LengthError)
-    
-    # NewFish$Mat95<- Fish$Mat95*(LengthError)
-    
-    # NewFish$t0<- Fish$t0*(LengthError)
-    
-    NewFish$M<-rlnorm(1,log(Fish$M),(Fish$MortalityError))
+    NewFish$LengthMatRatio<- runif(1,NewFish$MinLengthMatRatio,NewFish$MaxLengthMatRatio)
+
+    NewFish$Mat50<- NewFish$Linf * NewFish$LengthMatRatio
+
+    NewFish$Mat95<- NewFish$Mat50*1.05    
+
+#     if (Fish$t0!=0)
+#     {
+#       NewFish$t0<- rnorm(1,(Fish$t0),(Fish$LengthError))
+#     }
+#       
     
     NewFish$MaxAge<- -log(.01)/Fish$M
+        
+#     Mtm_Error<- abs((NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0))/1.65-1)
+#     
+#     MvK_Error<- abs((NewFish$M/NewFish$vbk)/1.6-1)
+#     
+#     LmvLinf_Error<- abs((mean(c(NewFish$Mat50,NewFish$Mat95))/NewFish$Linf)/0.67-1)
+#     
+#     LHI_Error<- (mean(c(Mtm_Error,MvK_Error, LmvLinf_Error)))
     
-    
-    
-    Mtm_Error<- abs((NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0))/1.65-1)
-    
-    MvK_Error<- abs((NewFish$M/NewFish$vbk)/1.6-1)
-    
-    LmvLinf_Error<- abs((mean(c(NewFish$Mat50,NewFish$Mat95))/NewFish$Linf)/0.67-1)
-    
-    LHI_Error<- (mean(c(Mtm_Error,MvK_Error, LmvLinf_Error)))
-    
-    
-    # show(paste('MTm Ratio Is ',round(NewFish$M*AgeAtLength(NewFish$Mat95,Fish,0),2),sep=''))
-    
-    # show(paste('M/K Ratio Is ',round(NewFish$M/NewFish$vbk,2),sep=''))
-    
-    
-    # show(paste('Lm/Linf Ratio Is ',round(NewFish$Mat95/NewFish$Linf,2),sep=''))
-  }
+#   }
   
   return(NewFish)
 }

@@ -1810,9 +1810,9 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   
   colnames(MCOutput)<- c('Iteration','Year','Method','SampleSize','Value','Metric','Flag')
   
-  MCDetails<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=5))
+  MCDetails<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=6))
   
-  colnames(MCDetails)<- c('Iteration','Year','FishingMortality','NaturalMortality','SampleSize')
+  colnames(MCDetails)<- c('Iteration','Year','TotalMortality','FishingMortality','NaturalMortality','SampleSize')
   
   Output<- as.data.frame(matrix(NA,nrow=length(Years),ncol=9))
   
@@ -2016,6 +2016,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           {
             Flag<- 'Catch Curve could not estimate M'	
           }
+#           browser()
           #     NaturalMortality<-  sum(MortalityWeight*c(CatchCurveNaturalMortality,(Fish$MvK*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
           NaturalMortality<-  CatchCurveNaturalMortality
           
@@ -2030,10 +2031,6 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           MortalityWeight<- MortalityWeight/sum(MortalityWeight)
           
           NaturalMortality<-  sum(MortalityWeight*c(Fish$M,Fish$MvK*Fish$vbk),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
-          
-          
-          #           NaturalMortality<-  sum(MortalityWeight*c(Fish$M,(1.2*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
-          # show(NaturalMortality)
           
           Flag<- 'No MPA based M possible - derived from LHI and Lit'
         }
@@ -2159,6 +2156,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
         MCOutput$SampleSize[c]<- SampleSize[y]
         MCDetails$Iteration[c]<- i
         MCDetails$Year[c]<- Years[y]
+        MCDetails$TotalMortality[c]<- TotalMortality
         MCDetails$FishingMortality[c]<- FishingMortality
         MCDetails$NaturalMortality[c]<- NaturalMortality
         MCDetails$SampleSize[c]<-  SampleSize[y]
@@ -2179,6 +2177,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
         
         MCDetails$Iteration[c]<- i
         MCDetails$Year[c]<- Years[y]
+        MCDetails$TotalMortality[c]<- NA
         MCDetails$FishingMortality[c]<- NA      
         MCDetails$NaturalMortality[c]<- NA
         MCDetails$SampleSize[c]<- NA
@@ -2194,20 +2193,19 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   } #Close monte carlo loop
   if (sum(is.na(MCDetails$Iteration)==F)>0)
   {
-    
+
     MCDetails$WeightedYear<- Fish$Alpha*(((MCDetails$Year-min(MCDetails$Year,na.rm=T))+1)/length(unique(MCDetails$Year)))
     
     MCDetails$WeightedSample<- (1-Fish$Alpha)*MCDetails$SampleSize/max(MCDetails$SampleSize,na.rm=T)
     
-    MCDetails$TotalMortality<- MCDetails$FishingMortality+MCDetails$NaturalMortality
+    MeanNaturalMort=ddply(MCDetails,c('Iteration'),summarize,
+                          MeanNaturalMort=sum(NaturalMortality*(WeightedYear+WeightedSample),na.rm=T)/sum(WeightedYear+WeightedSample,na.rm=T))
     
-    MeanMort=ddply(MCDetails,c('Iteration'),summarize,MeanMort=sum(NaturalMortality*(WeightedYear+WeightedSample),na.rm=T)/sum(WeightedYear+WeightedSample,na.rm=T))
+    MCDetails<- join(MCDetails,MeanNaturalMort,by='Iteration')
     
-    MCDetails<- join(MCDetails,MeanMort,by='Iteration')
+    MCDetails$FishingMortality<- MCDetails$TotalMortality-MCDetails$MeanNaturalMort
     
-    MCDetails$FishingMortality<- MCDetails$TotalMortality-MCDetails$MeanMort
-    
-    MCDetails$FvM<- MCDetails$FishingMortality / MCDetails$MeanMort
+    MCDetails$FvM<- MCDetails$FishingMortality / MCDetails$MeanNaturalMort
     
     MCOutput$Value<- MCDetails$FvM
     
@@ -2235,8 +2233,8 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     
     pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
     
-    p=ggplot(MCDetails,aes(factor(Year),MeanMort,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('M')
-    #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+    p=ggplot(MCDetails,aes(factor(Year),MeanNaturalMort,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('M')
+    #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanNaturalMort, c(0.1, 0.9),na.rm=T)))
     print(p)
     
     dev.off()
@@ -2261,8 +2259,8 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
       
       pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
       
-      p=ggplot(MCDetails,aes(factor(Year),MeanMort))+geom_boxplot()+xlab('Year')+ylab('M')
-      #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanMort, c(0.1, 0.9),na.rm=T)))
+      p=ggplot(MCDetails,aes(factor(Year),MeanNaturalMort))+geom_boxplot()+xlab('Year')+ylab('M')
+      #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanNaturalMort, c(0.1, 0.9),na.rm=T)))
       print(p)
       
       dev.off()
@@ -2592,7 +2590,7 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
       UpperCI<- TempValue[Top]
 
       SD<- sd(TempValue[Bottom:Top],na.rm=T)
-      Output[y,]<- I(data.frame(Years[y],'DensityRatio',SampleSize$SampleSize[y],TrueOutput$Value[y],LowerCI,UpperCI,SD,'N/K',TrueOutput$Flag[y],stringsAsFactors=F))
+      Output[y,]<- I(data.frame(Years[y],'DensityRatio',SampleSize$SampleSize[y],TrueOutput$Value[y],LowerCI,UpperCI,SD,'Biomass Density Ratio',TrueOutput$Flag[y],stringsAsFactors=F))
       
     }
     
@@ -2629,21 +2627,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ######################
   #Source: Based on the length based SPR methods developed by Prince, Valencia, Adrian
   #Summary: Estimate SPR by estimating selectivity, F using observed and predicted length frequency data
-  
-  # setwd("/Users/danovando/Desktop/Bren/SFG Work/DPSA")
-  
-  # #   LengthDat<- LengthData
-  
-  # EstimateM<- 0   
-  
-  # Iterations<-  10 
-  
-  # BootStrap<- 1
-  
-  # LifeError<- 1
-  
-  # LengthBins<- 1
-  
+
   ######################
   ###### Inputs #########
   ######################
@@ -2666,7 +2650,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   SampleSize<- NA
   
   Years<- sort(unique(LengthDat$Year))
-  
+
   Output<- as.data.frame(matrix(NA,nrow=length(Years),ncol=9))
   
   colnames(Output)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
@@ -2767,7 +2751,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         
       }
       
-      AssessPars<- BuildLBSPRPars(Fish=Fish,Mpow=0,NGTG=70,MaxSD=3,FecB=3,
+      AssessPars<- BuildLBSPRPars(Fish=Fish,Mpow=0,NGTG=100,MaxSD=3,FecB=3,
                                   SL50Min=SL50Min,SL50Max=SL50Max,DeltaMin=DeltaMin,DeltaMax=DeltaMax)
       
       LenHist<- hist(CatchatLength,breaks=seq(min(CatchatLength,na.rm=T),
@@ -2785,6 +2769,14 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         plot(LenMids,LenFreq)
         text(x=mean(LenMids),y=mean(LenFreq),'LBSPR Model Failed',cex=3)      
         dev.off()
+        
+        MCOutput[c,]<- data.frame(i,Years[y],'LBSPR',NA,NA,NA,
+                                 NA,'SPR','Model Failed',stringsAsFactors=F)
+        
+        MCDetails[c,]<- data.frame(i,Years[y],NA,
+                                   NA,
+                                   NA,stringsAsFactors=F)
+        
       }
       if (runMod$ModelFailed==F)
       {
@@ -2795,11 +2787,10 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       
       Selectivity<- runMod$Estimates %>% subset(Par=='SL50' | Par=='SL95')
                                                   
-      
-      pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
-      print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
-            + geom_vline(xintercept=Selectivity$Est))
-      dev.off()
+#       pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
+#       print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
+#             + geom_vline(xintercept=Selectivity$Est))
+#       dev.off()
       ResidualAnalysis<- AssessLBSPRResiduals(runMod,Fish,Years[y])
       
       CohortDeviates<- rbind(CohortDeviates,ResidualAnalysis$CohortDeviates)
@@ -2820,9 +2811,11 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ########################################
   ###### Process Monte Carlo Data #########
   #########################################
+  MCOutput<- subset(MCOutput,is.na(Iteration)==F)
+
   SampleSize<- ddply(LengthDat,c('Year'),summarize,Samples=length(Length))
   
-  TrueIteration<- MCOutput$Iteration==1
+  TrueIteration<- MCOutput$Iteration==1 & is.na(MCOutput$Iteration)==F
   
   TrueOutput<- MCOutput[TrueIteration,]
   
