@@ -22,7 +22,6 @@ Paper**/*.csv
 Paper**/*.*
 **/*.docx
 CCFRP 2.0**/*.*
-LBSPR**/*.*
 **/*.dat
 **/*.out
 **/*.pin

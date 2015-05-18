@@ -1,0 +1,113 @@
+#if !defined(_lbspr_)
+#  define _lbspr_
+
+class model_data : public ad_comm{
+  data_number Mk;
+  data_number Linf;
+  data_number CVLinf;
+  data_number NGTG;
+  data_number MaxSD;
+  data_number NLenMids;
+  data_vector LenMids;
+  data_vector ObsLength;
+  data_vector LenBins;
+  data_number L50;
+  data_number L95;
+  data_number FecB;
+  data_number Mpow;
+  data_number logSL50Min;
+  data_number logSL50Max;
+  data_number logDeltaMin;
+  data_number logDeltaMax;
+  data_number kslope;
+  ~model_data();
+  model_data(int argc,char * argv[]);
+  friend class model_parameters;
+};
+
+class model_parameters : public model_data ,
+  public function_minimizer
+{
+public:
+  ~model_parameters();
+  void preliminary_calculations(void);
+  void set_runtime(void);
+  virtual void * mycast(void) {return (void*)this;}
+  static int mc_phase(void)
+  {
+    return initial_params::mc_phase;
+  }
+  static int mceval_phase(void)
+  {
+    return initial_params::mceval_phase;
+  }
+  static int sd_phase(void)
+  {
+    return initial_params::sd_phase;
+  }
+  static int current_phase(void)
+  {
+    return initial_params::current_phase;
+  }
+  static int last_phase(void)
+  {
+    return (initial_params::current_phase
+      >=initial_params::max_number_phases);
+  }
+  static prevariable current_feval(void)
+  {
+    return *objective_function_value::pobjfun;
+  }
+private:
+  ivector integer_control_flags;
+  dvector double_control_flags;
+  param_init_bounded_number logSL50;
+  param_init_bounded_number logDelta;
+  param_init_number logFM;
+  param_number SDLinf;
+  param_number GTGLinf;
+  param_number LinfdL;
+  param_number Delta;
+  param_number EP0;
+  param_number EPf;
+  param_number MatDelta;
+  param_vector DiffLinfs;
+  param_vector RecProbs;
+  param_vector PredLenComp;
+  param_vector UnfishedLenComp;
+  param_vector Vul;
+  param_vector MkL;
+  param_vector FkL;
+  param_vector Mat;
+  param_vector Wght;
+  param_vector Fec;
+  param_vector EP0_gtg;
+  param_vector EPf_gtg;
+  param_vector PUnFished;
+  param_vector PFished;
+  param_vector NUnFished;
+  param_vector NFished;
+  param_vector currMkL;
+  param_vector currZkL;
+  param_matrix UnfishedMatrix;
+  param_matrix FishedMatrix;
+  param_matrix MKLMat;
+  param_matrix ZKLMat;
+  param_stddev_number FMpar;
+  param_stddev_number SPR;
+  param_stddev_number SL50;
+  param_stddev_number SL95;
+  param_vector temp;
+  param_number tempNum;
+  param_number prior_function_value;
+  param_number likelihood_function_value;
+  objective_function_value obj_fun;
+public:
+  virtual void userfunction(void);
+  virtual void report(void);
+  virtual void final_calcs(void);
+  model_parameters(int sz,int argc, char * argv[]);
+  virtual void initializationfunction(void){}
+
+};
+#endif
