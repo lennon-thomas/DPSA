@@ -1,5 +1,7 @@
-SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth)
+SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth,Theme)
 {
+    
+
   
 #     LengthDat<- LengthData
 #     AssessData<- AssessmentResults
@@ -15,65 +17,73 @@ SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth)
   
   #   xyplot(MeanLength~ Year,group= MPA,data=MeanLength,type='b',lwd=3,auto.key=T)
     
-  pdf(file=paste(FigureFolder,'Assessment Summary.pdf',sep=''))
+#   AssessData$LowerCI<- AssessData$LowerCI - AssessData$Value
+# 
+#   AssessData$UpperCI<- AssessData$UpperCI - AssessData$Value
+#   
+#   
+  pdf(file=paste(FigureFolder,'Assessment Summary.pdf',sep=''),width=16,height=14)
   
+#   theme(legend.position='top')
   LengthPlot<- (ggplot(data=subset(LengthDat,Year==MaxYear),aes(Length,fill=MPA))+
-                 geom_density(alpha=0.5)+xlab('Length (cm)')+geom_vline(xintercept=Fish$Mat50,color='red',
-                                                                        linetype='longdash',size=1.5))
+                 geom_density(alpha=0.7,aes(y=..count..))+xlab('Length (cm)')
+                +geom_vline(xintercept=Fish$Mat50,linetype='longdash',size=2)
+                +scale_fill_manual(name='',values=c(FishedColor,MPAColor))+Theme+ylab('Count'))
   
   limits <- aes(ymax = UpperCI, ymin=LowerCI)
   
   AssessData$LowerCI[is.na(AssessData$LowerCI)]<- AssessData$Value[is.na(AssessData$LowerCI)]
 
   AssessData$UpperCI[is.na(AssessData$UpperCI)]<- AssessData$Value[is.na(AssessData$UpperCI)]
-  
 #   FPlot<- (ggplot(data=subset(AssessData,Method=='CatchCurve'),aes(x=Year,y=Value))+
 #     geom_smooth(se=F,size=2)+geom_errorbar(limits)+ylab('F/Fmsy')+geom_hline(yintercept=1))
-
   FPlot<- (ggplot(data=subset(AssessData,(Method=='CatchCurve' | Method=='LBSPR') & Metric=='FvM'),aes(x=Year,y=Value,color=Method))+
-             geom_smooth(se=F,size=2)+geom_errorbar(limits)+ylab('F/Fmsy')+geom_hline(yintercept=1))
+             geom_smooth(se=F,aes(ymin=LowerCI,ymax=UpperCI,fill=Method),stat='identity',size=2,alpha=0.4,size=2)+ylab('F/M')+
+             geom_hline(yintercept=1,size=2,linetype='longdash')
+           +scale_color_manual(name='',values=c("#1f78b4","#33a02c"))+scale_fill_manual(name='',values=c("#1f78b4","#33a02c"))+Theme)
   
   
   DensityPlot<- (ggplot(data=subset(AssessData,Method=='DensityRatio'),aes(x=Year,y=Value))+
-             geom_smooth(se=F,size=2,color='green4')+geom_errorbar(limits)+ylab('Density Ratio')+geom_hline(yintercept=1))
+             geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),fill='#253494',size=2,color='#253494')+ylab('Density Ratio')+geom_hline(yintercept=1,size=2,linetype='longdash')
+             +Theme)
   
   SPRPlot<- (ggplot(data=subset(AssessData,Method=='LBSPR' & Metric=='SPR'),aes(x=Year,y=Value))+
-                   geom_smooth(se=F,size=2,color='red2')+geom_errorbar(limits)+ylab('SPR')+geom_hline(yintercept=0.4))
+                   geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),size=2,fill='#b30000',color='#b30000')+ylab('SPR')+geom_hline(yintercept=0.4,size=2,linetype='longdash')
+             +Theme)
   
 grid.arrange(LengthPlot,FPlot,DensityPlot,SPRPlot
     ,nrow=2,ncol=2,main=paste(Species,'-',Sites[s],sep=''))
   dev.off()
-  
-#   pdf(file=paste(FigureFolder,'Assessment Summary V2.pdf',sep=''))
-#   grid.arrange(
-#     densityplot(~Length,groups=MPA,data=LengthDat[LengthDat$Year==MaxYear,],auto.key=T,type='count',lwd=3,panel=function(x,...)
-#     {
-#       panel.densityplot(x,...)
-#       panel.abline(v=Fish$Mat50,lty=2)
-#     } 
-#     ),
-#     
-#     xyplot(movingAverage(Value,n=YearsToSmooth,centered=TRUE) ~ Year,data=AssessData,subset=Method=='CatchCurve',type='b',lwd=3,ylab='F/M',xlab='',
-#            panel=function(x,y,...)
-#            {
-#              panel.xyplot(x,y,...)
-#              panel.abline(h=1,lty=2)
-#            })
-#     ,
-#     xyplot(movingAverage(Value,n=YearsToSmooth,centered=TRUE) ~ Year,data=AssessData,subset=Method=='DensityRatio',col='tomato3',type='b',lwd=3,ylab='Fished/MPA',xlab='',
-#            panel=function(x,y,...)
-#            {
-#              panel.xyplot(x,y,...)
-#              panel.abline(h=1,lty=2)
-#            })
-#     ,
-#     xyplot(movingAverage(Value,n=YearsToSmooth,centered=TRUE) ~ Year,data=AssessData,subset=Method=='LBSPR',type='b',col='forestgreen',lwd=3,ylab='SPR', panel=function(x,y,...)
-#     {
-#       panel.xyplot(x,y,...)
-#       panel.abline(h=0.4,lty=2)
-#     })
-#     
-#     ,nrow=2,ncol=2,main=paste(Species,'-',Sites[s],sep=''))
-#   dev.off()
+
+pdf(file=paste(FigureFolder,'Assessment Summary 2.pdf',sep=''),width=16,height=14)
+
+#   theme(legend.position='top')
+LengthPlot<- (ggplot(data=subset(LengthDat,Year==MaxYear),aes(Length,fill=MPA))+
+                geom_density(alpha=0.7,aes(y=..count..))+xlab('Length (cm)')
+              +geom_vline(xintercept=Fish$Mat50,linetype='longdash',size=2)
+              +scale_fill_manual(name='',values=c(FishedColor,MPAColor))+Theme+ylab('Count'))
+
+limits <- aes(ymax = UpperCI, ymin=LowerCI)
+
+AssessData$LowerCI[is.na(AssessData$LowerCI)]<- AssessData$Value[is.na(AssessData$LowerCI)]
+AssessData$UpperCI[is.na(AssessData$UpperCI)]<- AssessData$Value[is.na(AssessData$UpperCI)]
+#   FPlot<- (ggplot(data=subset(AssessData,Method=='CatchCurve'),aes(x=Year,y=Value))+
+#     geom_smooth(se=F,size=2)+geom_errorbar(limits)+ylab('F/Fmsy')+geom_hline(yintercept=1))
+FPlot<- (ggplot(data=subset(AssessData,(Method=='CatchCurve') & Metric=='FvM'),aes(x=Year,y=Value))+
+           geom_smooth(se=F,aes(ymin=LowerCI,ymax=UpperCI),stat='identity',size=2,alpha=0.4,size=2,
+                       color="#336600",fill="#336600")+ylab('F/M')+
+           geom_hline(yintercept=1,size=2,linetype='longdash')+Theme)
+
+DensityPlot<- (ggplot(data=subset(AssessData,Method=='DensityRatio'),aes(x=Year,y=Value))+
+                 geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),fill='#253494',size=2,color='#253494')+ylab('Density Ratio')+geom_hline(yintercept=1,size=2,linetype='longdash')
+               +Theme)
+
+SPRPlot<- (ggplot(data=subset(AssessData,Method=='LBSPR' & Metric=='SPR'),aes(x=Year,y=Value))+
+             geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),size=2,fill='#b30000',color='#b30000')+ylab('SPR')+geom_hline(yintercept=0.4,size=2,linetype='longdash')
+           +Theme)
+
+grid.arrange(LengthPlot,FPlot,DensityPlot,SPRPlot
+             ,nrow=2,ncol=2,main=paste(Species,'-',Sites[s],sep=''))
+dev.off()
   
 }

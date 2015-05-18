@@ -3,7 +3,7 @@ BuildLBSPRPars<- function(Fish,Mpow,NGTG,MaxSD,FecB,SL50Min,SL50Max,DeltaMin,Del
   with(Fish,{
   MK     <- MvK
   Linf   <- Linf
-  CVLinf <- 0.2
+  CVLinf <- 0.3
   L50    <- Mat50
   L95    <- Mat95
   Walpha <- WeightA

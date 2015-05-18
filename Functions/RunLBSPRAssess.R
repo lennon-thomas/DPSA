@@ -72,13 +72,16 @@ RunLBSPRAssess <- function(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr"
   
   # Run ADMB optimizer  
   ModelFailed <- FALSE
-#   Sys.chmod(as.character(ADMBFile), mode="7777", use_umask =FALSE)
+  Sys.chmod(as.character(ADMBFile), mode="7777", use_umask =FALSE)
 
   ADMBCode <- system2(ADMBFile) #, show.output.on.console=showOutput)
   if (ADMBCode > 0) ModelFailed <- TRUE
   TryRead <- try(read.table(paste0(ADMBRead, "/", ExName, ".std"), skip=1)[4:7, 2:4])
-  if (class(TryRead) == "try-error")   ModelFailed <- TRUE
-
+  if (class(TryRead) == "try-error")  
+  { 
+    ModelFailed <- TRUE
+  }
+  
   while (ModelFailed & Count <=MaxCount) {
     Ind <- min(which(cumsum(LenFreq)/max(cumsum(LenFreq)) > runif(1)))
     startSL50 <- LenMids[Ind]

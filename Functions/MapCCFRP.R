@@ -18,22 +18,31 @@ MapCCFRP<- function(Data)
   
   BaseDir<- getwd()
   
-  setwd(FigureFolder)
-  
-  saveGIF(
-{
-  for (y in Years)
-  {
-    print(ggmap(CentralCoast, fullpage = TRUE)+
-            geom_point(aes(x=Lon,y=Lat,color=factor(MPA),size=MeanLength),alpha=0.8,
-                       data=subset(MapDat,Year==y))+ggtitle(y)
-          +scale_size_continuous(range=c(2,10),name='Mean Length (cm)')+
-            scale_color_manual(name='',values=c(FishedColor,MPAColor)))
-  }
-  
-},movie.name='MPA Average Size Movie.gif',imgdir=FigureFolder)
+#   setwd(FigureFolder)
+#   
+#   saveGIF(
+# {
+#   for (y in Years)
+#   {
+#     print(ggmap(CentralCoast, fullpage = TRUE)+
+#             geom_point(aes(x=Lon,y=Lat,color=factor(MPA),size=MeanLength),alpha=0.8,
+#                        data=subset(MapDat,Year==y))+ggtitle(y)
+#           +scale_size_continuous(range=c(2,10),name='Mean Length (cm)')+
+#             scale_color_manual(name='',values=c(FishedColor,MPAColor)))
+#   }
+#   
+# },movie.name='MPA Average Size Movie.gif',imgdir=FigureFolder)
+# 
+# setwd(BaseDir)
 
-setwd(BaseDir)
+
+pdf(file=paste(FigureFolder,'Study Sites.pdf',sep=''))
+print(ggmap(CentralCoast, fullpage = TRUE)+
+        geom_point(aes(x=Lon,y=Lat,color=factor(MPA),shape=factor(MPA)),size=7,alpha=0.9,data=subset(MapDat,Year==2014))+
+        scale_color_manual(name='',values=c(FishedColor,MPAColor)))
+dev.off()
+
+
 
 pdf(file=paste(FigureFolder,'MPA Average Size.pdf',sep=''))
 print(ggmap(CentralCoast, fullpage = TRUE)+
@@ -69,22 +78,22 @@ MapDat$MPA[MapDat$Reserve==1]<- 'Reserve'
 Years<- unique(MapDat$Year)
 
 
-setwd(FigureFolder)
+# setwd(FigureFolder)
+# 
+# saveGIF(
+# {
+#   for (y in Years)
+#   {
+#     print(ggmap(CentralCoast, fullpage = TRUE)+
+#             geom_point(aes(x=Lon,y=Lat,color=factor(MPA),size=Density),alpha=0.7,
+#                        data=subset(MapDat,Year==y))+ggtitle(y)
+#           +scale_size_continuous(range=c(2,10),name='Density (kg/km2)')+
+#             scale_color_manual(name='',values=c(FishedColor,MPAColor)))
+#   }
+#   
+# },movie.name='MPA Density Movie.gif',imgdir=FigureFolder)
 
-saveGIF(
-{
-  for (y in Years)
-  {
-    print(ggmap(CentralCoast, fullpage = TRUE)+
-            geom_point(aes(x=Lon,y=Lat,color=factor(MPA),size=Density),alpha=0.7,
-                       data=subset(MapDat,Year==y))+ggtitle(y)
-          +scale_size_continuous(range=c(2,10),name='Density (kg/km2)')+
-            scale_color_manual(name='',values=c(FishedColor,MPAColor)))
-  }
-  
-},movie.name='MPA Density Movie.gif',imgdir=FigureFolder)
-
-setwd(BaseDir)
+# setwd(BaseDir)
 
 pdf(file=paste(FigureFolder,'MPA Density.pdf',sep=''))
 print(ggmap(CentralCoast, fullpage = TRUE)+
