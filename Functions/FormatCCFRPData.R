@@ -56,7 +56,22 @@ FormatCCFRPData<- function(Data)
   
   DensityData$DistanceProtected[DensityData$MPA==0]<- DensityData$DistanceProtected[DensityData$MPA==0]*-1
   
-  return(list(LengthData=LengthData,DensityData=DensityData))
+
+  # Format CPUE Data -----------------------------------------------------
+    
+  CPUEData<- ddply(Data,c('Year','Month','sample_Idcellday'),summarize,Site='All',Count=sum(length_cm>0 | is.na(length_cm),na.rm=T),Biomass=sum(Weight,na.rm=T)
+                      ,AnglerHours= sum(Angler_hours,na.rm=T),DistanceFromBorder=mean(Meters.to.MPA.border,na.rm=T)
+                      ,SampleType=unique(Sample_Type),MPA=unique(MPA_or_REF),
+                      DistanceProtected=mean(Meters.to.MPA.border,na.rm=T),MeanLongitude=mean(MeanLon,na.rm=T),
+                      MeanLatitude=mean(MeanLat,na.rm=T),SiteType=unique(SiteId),Fish=unique(CommName))
+  
+  CPUEData$MPA[CPUEData$MPA=='REF']<- 0
+  
+  CPUEData$MPA[CPUEData$MPA=='MPA']<- 1
+  
+  CPUEData$DistanceProtected[CPUEData$MPA==0]<- CPUEData$DistanceProtected[CPUEData$MPA==0]*-1
+  
+  return(list(LengthData=LengthData,DensityData=DensityData,CPUEData=CPUEData))
   
 }
 
