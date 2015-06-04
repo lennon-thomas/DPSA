@@ -75,10 +75,6 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   #ifndef NO_AD_INITIALIZE
     PredLenComp.initialize();
   #endif
-  UnfishedLenComp.allocate(1,NLenMids,"UnfishedLenComp");
-  #ifndef NO_AD_INITIALIZE
-    UnfishedLenComp.initialize();
-  #endif
   Vul.allocate(1,NLenMids+1,"Vul");
   #ifndef NO_AD_INITIALIZE
     Vul.initialize();
@@ -187,6 +183,7 @@ void model_parameters::preliminary_calculations(void)
  RecProbs = 1/(sqrt(2*pi*SDLinf*SDLinf)) * mfexp(-(elem_prod((DiffLinfs-Linf),(DiffLinfs-Linf)))/(2*SDLinf*SDLinf));
  RecProbs = RecProbs/sum(RecProbs);
  
+ cout << "damnit" << endl;
 }
 
 void model_parameters::userfunction(void)
@@ -210,7 +207,7 @@ void model_parameters::userfunction(void)
     NFished = 0 ;
     PUnFished(1) = RecProbs(Gtype);
     PFished(1) = RecProbs(Gtype);
-    GTGLinf = DiffLinfs(Gtype);
+    GTGLinf = DiffLinfs(Gtype); 
     for (L=2;L<=NLenMids+1;L++) {
      if (LenBins(L) < GTGLinf) {
        PUnFished(L) = PUnFished(L-1) * pow(((GTGLinf-LenBins(L))/(GTGLinf-LenBins(L-1))),currMkL(L-1));
@@ -221,7 +218,6 @@ void model_parameters::userfunction(void)
        PFished(L) = 0; 
      }
    }
-   // cout<< PUnFished << endl;
    for (L=1;L<=NLenMids;L++) {
  	NUnFished(L)  = (PUnFished(L) - PUnFished(L+1))/currMkL(L);
  	NFished(L) =  (PFished(L) - PFished(L+1))/currZkL(L);	
@@ -234,8 +230,6 @@ void model_parameters::userfunction(void)
   EP0 = sum(EP0_gtg);
   EPf = sum(EPf_gtg);
   SPR =  EPf/EP0;
-  UnfishedLenComp = colsum(UnfishedMatrix);
-  UnfishedLenComp = UnfishedLenComp/sum(UnfishedLenComp);
   PredLenComp = colsum(FishedMatrix);
   PredLenComp =  elem_prod(PredLenComp,  1.0/(1+mfexp(-log(19)*(LenMids-SL50)/Delta)));
   PredLenComp = PredLenComp/sum(PredLenComp);
@@ -256,7 +250,6 @@ void model_parameters::report()
  report << PredLenComp << endl; // model fit
  report << ObsLength << endl; // original length data
  report << LenMids << endl; // length bins
- report << UnfishedLenComp << endl; // Unfished length composition
  report << obj_fun << endl; // likelihood obj_fun
  report << objective_function_value::pobjfun->gmax; // maximum gradient value
 }
