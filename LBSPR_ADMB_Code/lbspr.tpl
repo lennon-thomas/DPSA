@@ -24,7 +24,7 @@ DATA_SECTION
   init_number logDeltaMin;
   init_number logDeltaMax;
   
-  init_number kslope;
+  init_number Mslope;
 
 // ----------------------------------------------------------------------------
  PARAMETER_SECTION  
@@ -39,30 +39,37 @@ DATA_SECTION
   number Delta;
   number EP0;
   number EPf;
-  number MatDelta; 
+  // number MatDelta; 
 
   vector DiffLinfs(1,NGTG);
   vector RecProbs(1,NGTG);
+  vector EP0_gtg(1,NGTG);
+  vector EPf_gtg(1,NGTG);
+  vector L50gtg(1,NGTG);
+  vector L95gtg(1,NGTG);
+  vector MatDeltagtg(1,NGTG);
+  
   vector PredLenComp(1,NLenMids);
   vector Vul(1,NLenMids+1);
   vector MkL(1,NLenMids+1);
   vector FkL(1,NLenMids+1);
-  vector Mat(1,NLenMids);
+  // vector Mat(1,NLenMids);
   vector Wght(1,NLenMids);
-  vector Fec(1,NLenMids);
-  vector EP0_gtg(1,NGTG);
-  vector EPf_gtg(1,NGTG);
+  // vector Fec(1,NLenMids);
   vector PUnFished(1,NLenMids+1);
   vector PFished(1,NLenMids+1);
   vector NUnFished(1,NLenMids);
   vector NFished(1,NLenMids);
   vector currMkL(1,NLenMids+1);
   vector currZkL(1,NLenMids+1);
+  
 
   matrix UnfishedMatrix(1,NGTG,1,NLenMids);
   matrix FishedMatrix(1,NGTG,1,NLenMids);
   matrix MKLMat(1,NGTG,1,NLenMids+1);
   matrix ZKLMat(1,NGTG,1,NLenMids+1);
+  matrix MatMat(1,NGTG,1,NLenMids);
+  matrix FecMat(1,NGTG,1,NLenMids);
  
   sdreport_number FMpar;
   sdreport_number SPR;
@@ -73,41 +80,50 @@ DATA_SECTION
   number tempNum; // delete when finished debugging
   
   objective_function_value obj_fun;
-
+  
+  !! cout << "Done Parameters" << endl;
+  
 // ---------------------------------------------------------------------------- 
 PRELIMINARY_CALCS_SECTION
  int X;
  double pi = 3.14159265358979323844;
- MatDelta = L95 - L50;
- Mat = 1.0/(1+mfexp(-log(19)*(LenMids-L50)/MatDelta));
- Fec = elem_prod(Mat, pow(LenMids, FecB));
- Fec = Fec/max(Fec);
-
+ // MatDelta = L95 - L50;
+ // Mat = 1.0/(1+mfexp(-log(19)*(LenMids-L50)/MatDelta));
+ // Fec = elem_prod(Mat, pow(LenMids, FecB));
+ // Fec = Fec/max(Fec);
+ 
  SDLinf = CVLinf * Linf;
  LinfdL = ((Linf + MaxSD * SDLinf) - (Linf - MaxSD * SDLinf))/(NGTG-1);
  for (X=0;X<NGTG;X++) {
-   DiffLinfs(X+1) = (Linf - MaxSD * SDLinf) + X * LinfdL;  	 
+   DiffLinfs(X+1) = (Linf - MaxSD * SDLinf) + X * LinfdL;
+   L50gtg(X+1) = L50/Linf * DiffLinfs(X+1);
+   L95gtg(X+1) = L95/Linf * DiffLinfs(X+1); 
+   MatDeltagtg(X+1) = L95gtg(X+1) - L50gtg(X+1);
+   MatMat(X+1) = 1.0/(1+mfexp(-log(19)*(LenMids-L50gtg(X+1))/MatDeltagtg(X+1))); 
+   FecMat(X+1) =  elem_prod(MatMat(X+1), pow(LenMids, FecB));
  }
- 
+
  RecProbs = 1/(sqrt(2*pi*SDLinf*SDLinf)) * mfexp(-(elem_prod((DiffLinfs-Linf),(DiffLinfs-Linf)))/(2*SDLinf*SDLinf));
  RecProbs = RecProbs/sum(RecProbs);
  
- cout << "damnit" << endl;
-
-
+ 
+ 
 PROCEDURE_SECTION
   int Gtype, L;
+  double Linc;
+  
+  Linc = LenBins(2) - LenBins(1);
+  
   FMpar = mfexp(logFM); // estimated F/M
   SL50 = mfexp(logSL50); 
   Delta = mfexp(logDelta);
  
   Vul = 1.0/(1+mfexp(-log(19)*(LenBins-SL50)/Delta));
-  
-  MkL = Mk * pow(Linf/LenBins, Mpow);
+  MkL = Mk * pow(Linf/(LenBins+Linc/2), Mpow);
   FkL = FMpar * Mk * Vul;
-
+  
   for (Gtype=1;Gtype<=NGTG;Gtype++) {
-	MKLMat(Gtype) = MkL + kslope*(DiffLinfs(Gtype) - Linf);
+	MKLMat(Gtype) = MkL + Mslope*(DiffLinfs(Gtype) - Linf);
     ZKLMat(Gtype) = MKLMat(Gtype) + FkL;  
 	currMkL = MKLMat(Gtype);
 	currZkL = ZKLMat(Gtype);
@@ -139,8 +155,8 @@ PROCEDURE_SECTION
   UnfishedMatrix(Gtype) =  NUnFished;
   FishedMatrix(Gtype) = NFished;  
   
-  EP0_gtg(Gtype) = sum(elem_prod(NUnFished, Fec));
-  EPf_gtg(Gtype) = sum(elem_prod(NFished, Fec));
+  EP0_gtg(Gtype) = sum(elem_prod(NUnFished, FecMat(Gtype)));
+  EPf_gtg(Gtype) = sum(elem_prod(NFished, FecMat(Gtype)));
   }
   
   EP0 = sum(EP0_gtg);

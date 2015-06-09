@@ -28,10 +28,7 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'CCFRP TEST LBSPR'
-
-dir.create(Assessment)
-
+Assessment<- 'CCFRP 8.2'
 
 Font<- 'Helvetica'
 
@@ -43,9 +40,7 @@ NumberOfSpecies<- 5
 
 ReserveYear<- 2007
 
-Assessments<- c('CatchCurve','CPUERatio','LBSPR')
-
-# Assessments<- c('LBSPR')
+Assessments<- c('CatchCurve','DensityRatio','LBSPR')
 
 DefaultSD<- 0.001
 
@@ -147,6 +142,7 @@ if (RunAssessments==T)
       
       if (file.exists(Directory)==F)
       {
+        dir.create(Assessment)
         dir.create(paste(Assessment, "/", Sites[s],sep=''))
         dir.create( paste(Assessment, "/", Sites[s],'/',Fishes[f],'/',sep=''))
       }
@@ -207,13 +203,9 @@ if (RunAssessments==T)
       
       DensityData<- ReformData$DensityData
       
-      CPUEData<- ReformData$CPUEData
-      
       write.csv(file=paste(Directory,AssessmentName,'_LengthData.csv',sep=''),LengthData)
       
       write.csv(file=paste(Directory,AssessmentName,'_DensityData.csv',sep=''),DensityData)
-
-      write.csv(file=paste(Directory,AssessmentName,'_CPUEData.csv',sep=''),DensityData)
       
       FigureFolder<- paste(Directory,'Figures/',sep='')
       
@@ -232,17 +224,15 @@ if (RunAssessments==T)
       
       Theme<- theme(legend.position='top',plot.background=element_rect(color=NA),
                     rect=element_rect(fill='transparent',color=NA)
-                    ,text=element_text(size=16,family=Font,color=FontColor),
+                    ,text=element_text(size=40,family=Font,color=FontColor),
                     axis.text.x=element_text(color=FontColor),
                     axis.text.y=element_text(color=FontColor),legend.key.size=unit(2.5,'cm'))
       
       PlotLengthData(LengthData,FigureFolder,Fish,Species,Sites[s],Theme)
       
       PlotDensityData(DensityData,FigureFolder,Fish,Species,Sites[s],Theme)
-
-      PlotCPUEData(CPUEData,FigureFolder,Fish,Species,Sites[s],Theme)
       
-      MapCCFRP(ReformData)
+      #     MapCCFRP(ReformData)
       
       ### Run Assessments ###
       
@@ -302,17 +292,6 @@ if (RunAssessments==T)
         {
           
           Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=250,BootStrap=1)$Output
-          
-          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.)
-          
-          AssessmentResults[[Counter]]<-StoreAssess
-        }
-        
-        if (Assessments[a]=='CPUERatio') #Run density ratio analysis 
-        {
-          
-          Temp<- CPUERatio(CPUEData,LagLength=1,Weight=1,Form='Biomass',Iterations=250,BootStrap=1)$Output
           
           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
             rename(Site=Sites.s.,Assessment=Assessments.a.)
@@ -401,13 +380,13 @@ if (RunAssessments==T)
       
       CurrentResults<- ldply(AssessmentResults) %>% subset(Species==Fishes[f] & Site==Sites[s])
       
-      if (any(CurrentResults$Assessment=='CatchCurve') & any(CurrentResults$Assessment=='CPUERatio') 
+      if (any(CurrentResults$Assessment=='CatchCurve') & any(CurrentResults$Assessment=='DensityRatio') 
           & any(CurrentResults$Assessment=='LBSPR') )
       {
         
         Theme<- theme(legend.position='top',plot.background=element_rect(color=NA),
                       rect=element_rect(fill='transparent',color=NA)
-                      ,text=element_text(size=16,family=Font,color=FontColor),
+                      ,text=element_text(size=30,family=Font,color=FontColor),
                       axis.text.x=element_text(color=FontColor),
                       axis.text.y=element_text(color=FontColor))
         
@@ -445,11 +424,11 @@ ddply(FlatAssessments,c('Species','Year','Metric'),summarize,Number=mean(Value))
 Ramp<- 'RdYlGn'
 
 LineKeynoteTheme<- theme(plot.background=element_rect(color=NA),rect=element_rect(fill='transparent',color=NA)
-                         ,text=element_text(size=16,family=Font,color=FontColor))
+                         ,text=element_text(size=30,family=Font,color=FontColor))
 
 
 KeynoteTheme<- theme(plot.background=element_rect(color=NA),rect=element_rect(fill='transparent',color=NA)
-                     ,text=element_text(size=16,family=Font,color=FontColor),
+                     ,text=element_text(size=30,family=Font,color=FontColor),
                      axis.text.x=element_text(angle=45,hjust=0.9,vjust=0.9,color=FontColor),
                      axis.text.y=element_text(color=FontColor),legend.position='none')
 
@@ -491,7 +470,7 @@ OrderDat<- function(PlotDat,OrdVar,OrdBy,Order)
   return(PlotDat)
 }
 
-pdf(paste(Assessment,'/Across Species Summary.pdf',sep=''))
+pdf(paste(Assessment,'/Across Species Summary.pdf',sep=''),width=18,height=12)
 
 PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='FvM' & Method=='CatchCurve' & Site=='All')
 
@@ -505,9 +484,9 @@ PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='SPR' & Site=='All')
 
 AggPlot(PlotDat,'SPR',KeynoteTheme,'Ascending')
 
-PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='Biomass CPUE Ratio' & Site=='All')
+PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='Biomass Density Ratio' & Site=='All')
 
-AggPlot(PlotDat,'CPUE Ratio',KeynoteTheme,'Ascending')
+AggPlot(PlotDat,'Density Ratio',KeynoteTheme,'Ascending')
 
 AllAssess<- subset(FlatAssessments,Site=='All')  %>% mutate(SA=paste(Species,Method,Metric,sep='-'))
 
@@ -536,9 +515,9 @@ print(ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fi
       +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
 
 
-Ordered<- OrderDat(subset(AllAssess,Year==2014 & Metric=='Biomass CPUE Ratio'),'Species','Slope','Increasing')
+Ordered<- OrderDat(subset(AllAssess,Year==2014 & Metric=='Biomass Density Ratio'),'Species','Slope','Increasing')
 
-print(ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in CR')
+print(ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in DR')
       +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
 
 dev.off()

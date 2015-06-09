@@ -8,7 +8,7 @@ PlotLengthData<- function(LengthDat,FigureFolder,Fish,Species,Site,Theme)
 
   LengthDat$SiteType[LengthDat$MPA==1]<- 'MPA'
   
-  pdf(file=paste(FigureFolder,Species,'-',Site,'Length Data.pdf',sep=''),width=5,height=5)
+  pdf(file=paste(FigureFolder,Species,'-',Site,'Length Data.pdf',sep=''),width=18,height=15)
   print(ggplot(data=LengthDat,aes(Length,fill=(SiteType)))+geom_density(alpha=0.6,aes(y=..count..))
         +scale_fill_manual(name='',values=c(FishedColor,MPAColor))
         +geom_vline(xintercept=Fish$Mat50,linetype='longdash')+

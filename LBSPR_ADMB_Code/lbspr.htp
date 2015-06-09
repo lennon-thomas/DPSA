@@ -74,6 +74,7 @@ private:
   param_vector DiffLinfs;
   param_vector RecProbs;
   param_vector PredLenComp;
+  param_vector UnfishedLenComp;
   param_vector Vul;
   param_vector MkL;
   param_vector FkL;
