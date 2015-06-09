@@ -30,6 +30,8 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 Assessment<- 'CCFRP 8.2'
 
+NumIterations<- 10
+
 Font<- 'Helvetica'
 
 FontColor<- 'Black'
@@ -257,7 +259,7 @@ if (RunAssessments==T)
           {
             
             
-            Temp<- LBAR(SampleCheck$ParedData,LagLength=1,Weight=0.2,IncludeMPA=0,ReserveYr=ReserveYear,OutsideBoundYr=NA,Iterations=1000,
+            Temp<- LBAR(SampleCheck$ParedData,LagLength=1,Weight=0.2,IncludeMPA=0,ReserveYr=ReserveYear,OutsideBoundYr=NA,Iterations=NumIterations,
                         BootStrap=1,LifeError=1,Lc=NA)$Output		
             
             StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
@@ -277,7 +279,7 @@ if (RunAssessments==T)
             
             
             Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight='AgeBased',WeightedRegression=1,
-                              ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=250,BootStrap=1,LifeError=1,HistInterval=1)$Output
+                              ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=NumIterations,BootStrap=1,LifeError=1,HistInterval=1)$Output
             
             StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
               rename(Site=Sites.s.,Assessment=Assessments.a.)
@@ -291,7 +293,7 @@ if (RunAssessments==T)
         if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
         {
           
-          Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=250,BootStrap=1)$Output
+          Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)$Output
           
           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
             rename(Site=Sites.s.,Assessment=Assessments.a.)
@@ -327,7 +329,7 @@ if (RunAssessments==T)
             #                         LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
             #                         SL50Max=LengthQuantile[2],DeltaMin=NA,DeltaMax=NA,IncludeReserve=TRUE)
             
-            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=50,BootStrap=1,
+            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=NumIterations,BootStrap=1,
                           LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
                           SL50Max=LengthQuantile[2],DeltaMin=0.01,DeltaMax=.2*Fish$Linf,IncludeReserve=FALSE)
             
