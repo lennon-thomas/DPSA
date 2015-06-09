@@ -28,11 +28,7 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-<<<<<<< HEAD
 Assessment<- 'FUCK LBSPR'
-=======
-Assessment<- 'CCFRP FU LBSPR'
->>>>>>> parent of b95fa31... DAMN IT
 
 dir.create(Assessment)
 
@@ -353,12 +349,9 @@ if (RunAssessments==T)
             #                         LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
             #                         SL50Max=LengthQuantile[2],DeltaMin=NA,DeltaMax=NA,IncludeReserve=TRUE)
             
-<<<<<<< HEAD
-            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=NumIterations,BootStrap=1,
-=======
-            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=10,BootStrap=1,
->>>>>>> parent of b95fa31... DAMN IT
-                          LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
+
+            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=NumIterations,BootStrap=0,
+                          LifeError=0,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
                           SL50Max=LengthQuantile[2],DeltaMin=0.01,DeltaMax=.2*Fish$Linf,IncludeReserve=FALSE)
             
             

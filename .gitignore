@@ -26,7 +26,7 @@ CCFRP 2.0**/*.*
 **/*.out
 **/*.pin
 **/*.gif
-LBSPR_ADMB_Code/**/*.*
+LBSPR_ADMB_Code**/*.*
 
 
 

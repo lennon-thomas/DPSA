@@ -2016,7 +2016,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
           {
             Flag<- 'Catch Curve could not estimate M'	
           }
-#           browser()
+          #           browser()
           #     NaturalMortality<-  sum(MortalityWeight*c(CatchCurveNaturalMortality,(Fish$MvK*Fish$vbk),(3/Fish$MaxAge),(exp(1.71-1.084*log(Fish$MaxAge)))),na.rm=T)/sum(MortalityWeight) #Calcualte weighted natural mortality
           NaturalMortality<-  CatchCurveNaturalMortality
           
@@ -2193,7 +2193,7 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
   } #Close monte carlo loop
   if (sum(is.na(MCDetails$Iteration)==F)>0)
   {
-
+    
     MCDetails$WeightedYear<- Fish$Alpha*(((MCDetails$Year-min(MCDetails$Year,na.rm=T))+1)/length(unique(MCDetails$Year)))
     
     MCDetails$WeightedSample<- (1-Fish$Alpha)*MCDetails$SampleSize/max(MCDetails$SampleSize,na.rm=T)
@@ -2215,29 +2215,29 @@ CatchCurve<- function(LengthDat,CatchCurveWeight,WeightedRegression, ReserveYr,O
     
     if (length(unique(MCOutput$Year))>1)
     {
-    
-    pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
-    
-    p=ggplot(MCDetails,aes(factor(Year),FvM,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('F/M')
-    print(p)
-    dev.off()
-    
-    
-    pdf(file=paste(FigureFolder,' Catch Curve F Boxplots.pdf',sep=''))
-    
-    p=ggplot(MCDetails,aes(factor(Year),FishingMortality,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('F')
-    print(p)
-    #+scale_y_continuous(limits = quantile(MCDetails$FishingMortality, c(0.1, 0.9),na.rm=T)))
-    
-    dev.off()
-    
-    pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
-    
-    p=ggplot(MCDetails,aes(factor(Year),MeanNaturalMort,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('M')
-    #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanNaturalMort, c(0.1, 0.9),na.rm=T)))
-    print(p)
-    
-    dev.off()
+      
+      pdf(file=paste(FigureFolder,' Catch Curve FvM Boxplots.pdf',sep=''))
+      
+      p=ggplot(MCDetails,aes(factor(Year),FvM,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('F/M')
+      print(p)
+      dev.off()
+      
+      
+      pdf(file=paste(FigureFolder,' Catch Curve F Boxplots.pdf',sep=''))
+      
+      p=ggplot(MCDetails,aes(factor(Year),FishingMortality,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('F')
+      print(p)
+      #+scale_y_continuous(limits = quantile(MCDetails$FishingMortality, c(0.1, 0.9),na.rm=T)))
+      
+      dev.off()
+      
+      pdf(file=paste(FigureFolder,' Catch Curve M Boxplots.pdf',sep=''))
+      
+      p=ggplot(MCDetails,aes(factor(Year),MeanNaturalMort,fill=SampleSize))+geom_boxplot()+xlab('Year')+ylab('M')
+      #     print(p+scale_y_continuous(limits = quantile(MCDetails$MeanNaturalMort, c(0.1, 0.9),na.rm=T)))
+      print(p)
+      
+      dev.off()
     }
     if (length(unique(MCOutput$Year))==1)
     {
@@ -2588,7 +2588,7 @@ DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
       LowerCI<- TempValue[Bottom]
       
       UpperCI<- TempValue[Top]
-
+      
       SD<- sd(TempValue[Bottom:Top],na.rm=T)
       Output[y,]<- I(data.frame(Years[y],'DensityRatio',SampleSize$SampleSize[y],TrueOutput$Value[y],LowerCI,UpperCI,SD,'Biomass Density Ratio',TrueOutput$Flag[y],stringsAsFactors=F))
       
@@ -2627,7 +2627,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ######################
   #Source: Based on the length based SPR methods developed by Prince, Valencia, Adrian
   #Summary: Estimate SPR by estimating selectivity, F using observed and predicted length frequency data
-
+  
   ######################
   ###### Inputs #########
   ######################
@@ -2650,7 +2650,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   SampleSize<- NA
   
   Years<- sort(unique(LengthDat$Year))
-
+  
   Output<- as.data.frame(matrix(NA,nrow=length(Years),ncol=9))
   
   colnames(Output)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
@@ -2680,7 +2680,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   
   #   setwd(LBSPRDir)
   
-#      compile_admb("lbspr",verbose=FALSE)
+  #      compile_admb("lbspr",verbose=FALSE)
   
   #   setwd(WD)  #changes directory back to main folder.
   
@@ -2719,7 +2719,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       ## Convert lenth data into appropriate format-- vector of raw size data
       if (IncludeReserve==F)
       {
-      CatchatLength <- LengthDat$Length[WhereFished]
+        CatchatLength <- LengthDat$Length[WhereFished]
       }
       if (IncludeReserve==T)
       {
@@ -2745,10 +2745,6 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         AllCatchAtLength<- LengthDat[WhereAll,]
         
         EstimatedM<- CatchCurve(AllCatchAtLength,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Details$NaturalMortality
-        
-        #         Temp<- CatchCurve(LengthData,'AgeBased',1,ReserveYear,NA,0,10,1,1,1)$Output
-        
-        
       }
       
       AssessPars<- BuildLBSPRPars(Fish=Fish,Mpow=0,NGTG=100,MaxSD=3,FecB=3,
@@ -2771,7 +2767,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
         dev.off()
         
         MCOutput[c,]<- data.frame(i,Years[y],'LBSPR',NA,NA,NA,
-                                 NA,'SPR','Model Failed',stringsAsFactors=F)
+                                  NA,'SPR','Model Failed',stringsAsFactors=F)
         
         MCDetails[c,]<- data.frame(i,Years[y],NA,
                                    NA,
@@ -2780,35 +2776,33 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       }
       if (runMod$ModelFailed==F)
       {
-
-      FitDiagnostic<- data.frame(runMod$Bins,runMod$Obs,runMod$Pred,runMod$Unfished)
-      colnames(FitDiagnostic)<- c('Length','Observed','Predicted','Unfished')
-      
-      FitDiagnostic<- gather(FitDiagnostic,Model,Proportion,2:4)
-      
-      Selectivity<- runMod$Estimates %>% subset(Par=='SL50' | Par=='SL95')
-<<<<<<< HEAD
-      browser()                                            
-=======
-                                                  
->>>>>>> parent of b95fa31... DAMN IT
-      pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
-      print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
-            + geom_vline(xintercept=Selectivity$Est))
-      dev.off()
-      ResidualAnalysis<- AssessLBSPRResiduals(runMod,Fish,Years[y])
-      
-      CohortDeviates<- rbind(CohortDeviates,ResidualAnalysis$CohortDeviates)
-      
-      AgeDeviates<- rbind(AgeDeviates,ResidualAnalysis$AgeDeviates)
-
-      MCOutput[c,]<- data.frame(i,Years[y],'LBSPR',runMod$Estimates$Est[runMod$Estimates$Par=='SPR'],NA,NA,
-                                runMod$Estimates$SD[runMod$Estimates$Par=='SPR'],'SPR',Flag,stringsAsFactors=F)
-      
-      MCDetails[c,]<- data.frame(i,Years[y],runMod$Estimates$Est[runMod$Estimates$Par=='FMpar'],
-                                 runMod$Estimates$Est[runMod$Estimates$Par=='SL50'],
-                                 runMod$Estimates$Est[runMod$Estimates$Par=='SL95'],stringsAsFactors=F)
-    }
+        
+        FitDiagnostic<- data.frame(runMod$Bins,runMod$Obs,runMod$Pred,runMod$Unfished)
+        colnames(FitDiagnostic)<- c('Length','Observed','Predicted','Unfished')
+        
+        FitDiagnostic<- gather(FitDiagnostic,Model,Proportion,2:4)
+        
+        Selectivity<- runMod$Estimates %>% subset(Par=='SL50' | Par=='SL95')
+        
+        browser()                                            
+        
+        pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
+        print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
+              + geom_vline(xintercept=Selectivity$Est))
+        dev.off()
+        ResidualAnalysis<- AssessLBSPRResiduals(runMod,Fish,Years[y])
+        
+        CohortDeviates<- rbind(CohortDeviates,ResidualAnalysis$CohortDeviates)
+        
+        AgeDeviates<- rbind(AgeDeviates,ResidualAnalysis$AgeDeviates)
+        
+        MCOutput[c,]<- data.frame(i,Years[y],'LBSPR',runMod$Estimates$Est[runMod$Estimates$Par=='SPR'],NA,NA,
+                                  runMod$Estimates$SD[runMod$Estimates$Par=='SPR'],'SPR',Flag,stringsAsFactors=F)
+        
+        MCDetails[c,]<- data.frame(i,Years[y],runMod$Estimates$Est[runMod$Estimates$Par=='FMpar'],
+                                   runMod$Estimates$Est[runMod$Estimates$Par=='SL50'],
+                                   runMod$Estimates$Est[runMod$Estimates$Par=='SL95'],stringsAsFactors=F)
+      }
       # Sel50, Sel95, F/M, and SPR stored in Estimates.
     } #Close year loop	
   } #Close iteration loop
@@ -2817,7 +2811,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   ###### Process Monte Carlo Data #########
   #########################################
   MCOutput<- subset(MCOutput,is.na(Iteration)==F)
-
+  
   SampleSize<- ddply(LengthDat,c('Year'),summarize,Samples=length(Length))
   
   TrueIteration<- MCOutput$Iteration==1 & is.na(MCOutput$Iteration)==F
@@ -2848,7 +2842,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
   MCOutput<- join(MCOutput,SampleSize,by='Year')  
   
   FOutput<- ddply(MCDetails,c('Year'),summarize,Method='LBSPR',SampleSize=NA,Value=mean(FvM,na.rm=T),LowerCI=NA,UpperCI=NA,
-                    SD=NA,Metric='FvM',Flag=NA)
+                  SD=NA,Metric='FvM',Flag=NA)
   
   if (Iterations>1)
   {
@@ -2887,35 +2881,35 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
     pdf(file=paste(FigureFolder,'Cohort Residuals Boxplots.pdf',sep=''))
     print(ggplot(data=CohortDeviates,aes(factor(Cohort),Residuals))+geom_boxplot(varwidth=F)
           +xlab('Cohort')+ylab('Residuals')+geom_hline(yintercept=0)+theme(axis.text.x=element_text(angle=45)))
-   
-   dev.off()
-   
-   if (length(unique(MCOutput$Year))>1)
-   {
-    pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
-    print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot()
-          +xlab('Year')+ylab('SPR'))
+    
     dev.off()
     
-    MCDetails<- join(MCDetails,SampleSize,by='Year')
-    pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
-    print(ggplot(data=MCDetails,aes(factor(Year),FvM),fill=Samples)+geom_boxplot(varwidth=F)
-          +xlab('Year')+ylab('F/Fmsy'))  
-    dev.off()
-   }
-   if (length(unique(MCOutput$Year))>1)
-   {
-     pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
-     print(ggplot(data=MCOutput,aes(factor(Year),Value))+geom_boxplot()
-           +xlab('Year')+ylab('SPR'))
-     dev.off()
-     
-     MCDetails<- join(MCDetails,SampleSize,by='Year')
-     pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
-     print(ggplot(data=MCDetails,aes(factor(Year),FvM))+geom_boxplot(varwidth=F)
-           +xlab('Year')+ylab('F/Fmsy'))  
-     dev.off()
-   }
+    if (length(unique(MCOutput$Year))>1)
+    {
+      pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
+      print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot()
+            +xlab('Year')+ylab('SPR'))
+      dev.off()
+      
+      MCDetails<- join(MCDetails,SampleSize,by='Year')
+      pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
+      print(ggplot(data=MCDetails,aes(factor(Year),FvM),fill=Samples)+geom_boxplot(varwidth=F)
+            +xlab('Year')+ylab('F/Fmsy'))  
+      dev.off()
+    }
+    if (length(unique(MCOutput$Year))>1)
+    {
+      pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
+      print(ggplot(data=MCOutput,aes(factor(Year),Value))+geom_boxplot()
+            +xlab('Year')+ylab('SPR'))
+      dev.off()
+      
+      MCDetails<- join(MCDetails,SampleSize,by='Year')
+      pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
+      print(ggplot(data=MCDetails,aes(factor(Year),FvM))+geom_boxplot(varwidth=F)
+            +xlab('Year')+ylab('F/Fmsy'))  
+      dev.off()
+    }
     
   }
   Fish<- BaseFish
