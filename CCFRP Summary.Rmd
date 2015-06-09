@@ -1,0 +1,54 @@
+---
+title: "CCFRP Summary"
+author: "Dan Ovando"
+date: "June 4, 2015"
+output: word_document
+csl: fish-and-fisheries.csl
+bibliography: Wakefield Paper.bib
+toc: yes
+---
+
+# Summary
+
+Wild capture fisheries are a critical source of food, employment, and cultural identity for billions of people around the world. Unfortunately, the majority of fisheries lack the scientific information needed to effectively manage their use. The field of fishery science has evolved over the past century to address the many challenges of estimating the size of fished population and determining sustainable levels of fishing. The most widely accepted methods for answering these questions are integrated stock assessments, which combine diverse data streams such as catch per unit effort, length composition of the catch, and fishery independent surveys into a Bayesian modeling framework to estimate key parameters such as the the fishing mortality rate that would result in maximum sustainable yield (MSY). However, these methods are both costly (often over half a million dollars a year) and complex to implement. As such, while much of the world's largest and most valuable fisheries are assessed in this way, the majority of fisheries lack assessments. Many "data-limited assessments" (DLAs) have been developed that seek to resolve this problem by being both simpler and cheaper to use, but while there is strong theoretical evidence as to the value of these tools, very few attempts have been made to apply them to real fisheries. This paper addresses this gap by applying a suite of published DLAs to a unique data set of 6 species of finfish along the central California Coast, in order to assess the concurrence among methods and demonstrate whether data from marine protected areas can provide management-caliber information. We show that a variety of DLAs provide plausible and coherent estimates of fishery status for many of our study species. We also provide strong evidence that the health of many of these fisheries have improved following the implementation of a series of MPAs, though interestingly many stocks show signs of decreasing health as well. Our results demonstrate that DLAs using relatively simple information collected inside and outside of MPAs provide information that can be used to guide management, at a lower cost and complexity than traditional assessment methods. Demonstrating the application of DLAs is critical for improving fishery management around the globe. Even in the US many fisheries lack the information for traditional management, and are instead guided by simplistic rules of thumb that may not reflect the true status of fisheries and local scales [@Berkson2015]. Globally, the picture is even worse, with the majority of fisheries lacking the data or expertise for even basic assessments [@Costello2012]. DLAs such as those demonstrated here provide a path for better management of these fisheries, both by showing how relatively inexpensive data can be paired with simpler assessment methods to provide guidance for data and resource limited fisheries. 
+
+
+Lots of papers have been making the broad case that we need to use DLAs more. Many others have simulation tested these methods, demonstrating their capabilities. However, relatively few studies have taken the next step and actually applied DLAs to real world data and fisheries and examined the results. CCFRP provides a unique opportunity to change this by examining how collaborative science and DLAs can help manage fisheries along the central coast of California. By running DLAs on the CCFRP species and putting these results out there, we hope to expand our knowledge of the current state of central California fisheries, and spark a discussion for the best ways to use DLAs to manage fisheries.
+
+
+# Introduction
+
+
+
+# Summary of CCFRP
+
+History of the program etc. 
+
+## Data Collection
+
+Summary of methods for data collection (site selection, fishing methods, standardization, etc.)
+
+# Methods
+
+## Species
+
+Brief summary of species, table of life history values used and sources
+
+## CPUE Ratio
+Methods and assumptions
+## Catch Curve
+Methods and assumptions
+## LBSPR
+Methods and assumptions
+
+## Results
+
+* Trends in mean length, CPUE over time
+* Trends in F, SPR, CPUE ratio over time
+* Current status by metrics (petal plots relative to reference points)
+* Diversity across space
+
+## Discussion
+
+* Issues etc (e.g. CPUE ratio is a problem early on)
+

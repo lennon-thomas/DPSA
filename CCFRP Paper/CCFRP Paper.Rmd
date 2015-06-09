@@ -1,0 +1,224 @@
+---
+title: Assessing the status of nearshore California finfish at local scales using
+  data-limited approaches
+author: "Dan Ovando, Jono Wilson, Dean Wendt, Rick Starr"
+date: "May 5, 2015"
+output:
+  html_document: default
+  pdf_document: default
+  word_document:
+    fig_caption: yes
+    fig_height: 4.5
+    fig_width: 7.25
+number_sections: yes
+csl: canadian-journal-of-fisheries-and-aquatic-sciences.csl
+bibliography: CCFRP Paper.bib
+toc: no
+---
+
+# Introduction
+
+Fisheries are a critical source of food, income, and cultural identity for billions of people around the globe [@Arnason2009]. While there is much debate on the status of global fisheries, the bulk of evidence currently indicates that fisheries that are assessed and managed are in relatively good condition [@Hilborn2014 ;@Worm2009]. However, while these well-studied fisheries make up a large proportion of the world's catch, the majority of the world's fisheries by numbers are largely unassessed, unmanaged, and in much poorer health [@Costello2012]. These fisheries have been loosely termed as "data-limited" fisheries (Cite Wakefield report XX).
+
+While these unassessed fisheries do not play a significant role in the global fishing economy, they are a critical support for local ecosystems and livelihoods around the world, especially in developing nations. Succesfully managing these fisheries requires some level of scientific guidance. How then can we take the lessons learned from the data-rich fisheries of the world and apply them to the data-limited? "Traditional" stock assessment methods (as outlined in Hilborn & Walters [-@Hilborn2013], XX fix this damn citation), which have been broadly effective in the data-rich fisheries of the world, are expensive and analytically complex. It is clear then that we cannot simply extend the scientific tools of the data-rich fisheries to the data-limited. This has led to a broad consensus that simpler and cheaper methods of assessment and management are needed for the data-limited fisheries of the world [@Prince2003; @Dowling2008] (XX check citations).
+
+In response to this need, a large and growing (track down Wakefield presentation for citation XX) number of data-limited assessments (DLAs)have been developed in the recent years (see [@Dowling2014 ; @Carruthers2014] for summaries). Broadly, DLAs seek to provide assessment outputs and management advice using some combination fewer data or simpler analytics than traditional stock assessments. The vast majority of these DLAs have been simulation tested through management strategy evaluation (MSE) [@Sainsbury1998], e.g. Hordyk et al. [-@Hordyk2014], McGilliard et al. [-@McGilliard2011], or Babcock & MacCall [-@Babcock2011],or compared against traditional stock assessments [XX]. These papers have broadly reached the conclusion that DLAs can provide relatively accurate and useful information to guide fisheries management. 
+
+The most commonly used DLAs are based on fishery catches (e.g. [@Dick2011 ; @Martell2012]).These methods broadly seek to explain the current status of a stock, relative to a reference point such as MSY, estimated by finding plausbile values given a known catch history and an estimate fo current depletion. Largely due to their ability to provide MSY based reference points, which fit neatly into the requirements of many country's regulatory frameworks, catch-based methods have become commonly adopted worldwide. Many regions of the U.S.A rely on catch based methods to assess the majority of their stocks [@Berkson2015]. Catch based methods face many shortcomings though. Besides questions as to the ability of fishery catches to reflect status (e.g. [@Branch2011 ; @Branch2013]), catch based methods may not be practical or possible for many developing world fisheries. Catch based methods generally require a near complete catch history of the fishery, which is unlikely to exist in many data-limited contexts. Even if a data-limited fishery were to start collecting catches, it would take many years to accumulate enough catch data to be usable in a catch-based DLA. 
+
+For these reasons, alternative DLAs that rely on other indicators, such as expert opinion, length frequencies, or trends in densitiy or CPUE may be more viable for many data-limited fisheries. These data are often easier to collect ( or already present) for many communities, and can start to provide meaningful data relatively quickly. In addition, many of these types of DLAs have been designed to leverage information from no-take marine protected areas (MPAs), which are growing in size and number around the world. (XX add citations in here, I'm tired now)
+
+However, despite the promise of this class of non-catch based DLAs, we know of few papers that have taken the next step and published estimates of stock status solely based on on the outcome of these DLAs (see [@Dowling2008] for notable exceptions). This is a critical gap. While the fishery science community has largely agreed on the need for DLAs, it has yet to directly address the validity of non catch-based DLAs as stand-alone tools for fishery assessment and management in real-world fisheries. 
+
+California provides a useful case study for the use and implementation of these DLAs. While the region has substantial resources to manage many of its fisheries, a significant number of the less commercially valuable stocks are assessed using catch-based methods [@Berkson2015]. Many of these data-limited stocks are managed a large spatial scale, in some cases lumping units from the Alaska border to Central California (check this XX). In addition, California implemented a series of MPAs through the California Marine Life Projection Act (MLPA), which mandated the creation of a network of MPAs that went into place starting in 2007 XX. In response to the formation of these MPAs, the California Collaborative Fisheries Research Program (CCFRP, [@Starr2015]) began a volunteer based program to study fish populations inside and outside of the MPAs to evaluate their impact along the central coast of California. Taken together, California provides a rich opportunity to examine the potential for non catch-based DLAs to provide management advice (This paragraph is no bueno, but you get the idea. Will be tightened up).
+
+
+This study advances the use of DLAs as fishery management tools by using a suite of commonly referenced DLAs to assess the status of XX species of finfish along the central California coast. We present DLA derived estimates of fishing mortality rates, spawning potential ratio (SPR), and CPUE ratios from 2007-2014. Where possible, DLA estimates are compared to traditional stock assessments. We show that our suite of DLAs provide plausible and coherent estimates of fishery status for many of our study species. We also provide strong evidence that the health of many of these fisheries have improved following the implementation of the Califorina MPAs, though interestingly many stocks show signs of decreasing health as well. 
+
+Our results demonstrate that DLAs using relatively simple information collected inside and outside of MPAs provide information that can be used to guide management, at a lower cost and complexity than traditional assessment methods or catch-based DLAs. However, we also find that the DLAs used provided potentially erroneous estimates for some species. By presenting the assessment results our study, our results both expand our knowledge of the current state of central California fisheries, and provide a starting point for evaluating to use this class of DLAs to manage real fisheries.
+
+# Summary
+
+Wild capture fisheries are a critical source of food, employment, and cultural identity for billions of people around the world. Unfortunately, the majority of fisheries lack the scientific information needed to effectively manage their use. The field of fishery science has evolved over the past century to address the many challenges of estimating the size of fished population and determining sustainable levels of fishing. The most widely accepted methods for answering these questions are integrated stock assessments, which combine diverse data streams such as catch per unit effort, length composition of the catch, and fishery independent surveys into a Bayesian modeling framework to estimate key parameters such as the the fishing mortality rate that would result in maximum sustainable yield (MSY). However, these methods are both costly (often over half a million dollars a year) and complex to implement. As such, while much of the world's largest and most valuable fisheries are assessed in this way, the majority of fisheries lack assessments. Many "data-limited assessments" (DLAs) have been developed that seek to resolve this problem by being both simpler and cheaper to use, but while there is strong theoretical evidence as to the value of these tools, very few attempts have been made to apply them to real fisheries. This paper addresses this gap by applying a suite of published DLAs to a unique data set of 6 species of finfish along the central California Coast, in order to assess the concurrence among methods and demonstrate whether data from marine protected areas can provide management-caliber information. We show that a variety of DLAs provide plausible and coherent estimates of fishery status for many of our study species. We also provide strong evidence that the health of many of these fisheries have improved following the implementation of a series of MPAs, though interestingly many stocks show signs of decreasing health as well. Our results demonstrate that DLAs using relatively simple information collected inside and outside of MPAs provide information that can be used to guide management, at a lower cost and complexity than traditional assessment methods. Demonstrating the application of DLAs is critical for improving fishery management around the globe. Even in the US many fisheries lack the information for traditional management, and are instead guided by simplistic rules of thumb that may not reflect the true status of fisheries and local scales [@Berkson2015]. Globally, the picture is even worse, with the majority of fisheries lacking the data or expertise for even basic assessments [@Costello2012]. DLAs such as those demonstrated here provide a path for better management of these fisheries, both by showing how relatively inexpensive data can be paired with simpler assessment methods to provide guidance for data and resource limited fisheries. 
+
+
+Lots of papers have been making the broad case that we need to use DLAs more. Many others have simulation tested these methods, demonstrating their capabilities. However, relatively few studies have taken the next step and actually applied DLAs to real world data and fisheries and examined the results. CCFRP provides a unique opportunity to change this by examining how collaborative science and DLAs can help manage fisheries along the central coast of California. By running DLAs on the CCFRP species and putting these results out there, we hope to expand our knowledge of the current state of central California fisheries, and spark a discussion for the best ways to use DLAs to manage fisheries.
+
+
+
+# Summary of CCFRP
+
+History of the program etc. 
+
+## Data Collection
+
+Summary of methods for data collection (site selection, fishing methods, standardization, etc.)
+
+# Methods
+
+## Species
+
+Brief summary of species, table of life history values used and sources
+
+## CPUE Ratio
+Methods and assumptions
+## Catch Curve
+Methods and assumptions
+## LBSPR
+Methods and assumptions
+
+## Results
+
+* Trends in mean length, CPUE over time
+* Trends in F, SPR, CPUE ratio over time
+* Current status by metrics (petal plots relative to reference points)
+* Diversity across space
+
+## Discussion
+
+* Issues etc (e.g. CPUE ratio is a problem early on)
+
+
+# Lit Review
+
+* Bentley & Stokes [-@Bentley2009]
+    * We need to be thinking more about the management procedures themselves, and less focused on the assessment themselves
+    * Using data signals to guide management
+* Starr et al. [-@Starr2015] describe the hetergeneiety in 
+    * They document hetergeneity in the effects of the reserves over time and that it takes a while to act
+    * Rebuilding and sustaining exploited species is a specific goal of the California MLPA
+    * Provides a thorough summary of ways in which we can use MPAs to track environmental changes over time
+    * has a great table of movement rates for each of the species
+    * Reserve effects may take a while to kick in, but information from the reserve starts to accrue immediately 
+* McGillard et al. [-@McGilliard2014]
+    * Focuses on use of density ratio
+    * They basically make the case for using density ratios for management
+    * They do point out that the density ratio is tough to use in it's early phases
+    * However, you could still infer something form the separate signals;if fished density is going down in the reference site while unfished density is going down might be a sign to be cautious 
+    
+* Geromont & Butterwork [-@Geromont2014]
+    * Data poor can work
+    
+* White Paper
+    * We need more community based management
+    
+* Wilson et al. [-@Wilson2010]
+    * You can use MPAs to guide management
+    * Multi-indicator are good
+* McGilliard et al. [-@McGilliard2014]
+    * Accounting for spatial variation caused by reserves is important
+* 
+```{r,echo=FALSE}
+
+```
+
+#The new pitch
+* We need DLAs
+* We need MPAs
+* MPAs can inform DLAs
+* Serve as our canary in the coalmine
+* So, how do we think about using DLAs with MPAs?
+* Methods
+* Results
+* Comparisons
+
+#Title Page
+
+#Abstract
+
+Fisheries managers are often faced with the challenge of managing at a spatial scale that balances the inherent demographic and biological variability of the stock with the practical constraints of governance, available resources, and data. Many nearshore rockfish species in California exhibit marked differences in growth rates and reproductive patterns, and experience variable harvest pressure across space. However, management regulations are generally applied across broad geographic scales, failing to account for spatial differences in life history and fishing pressure, leading to areas of low and high depletion and ultimately a disenfranchised fishing community. We use a time series of fishery independent length and density data for nearshore California finfish collected inside and outside of no-take marine protected areas (MPAs) by the California Collaborative Fisheries Research Program to perform a series of data-limited assessments (DLAs) at a variety of spatial scales. These DLAs include both length and density based metrics of stock status. This analysis allows us to a) provide improved scientific guidance on the health of these stocks at local scales and b) evaluate spatial and temporal differences in stock status. We are also able to compare and contrast the results and trends produced by the different DLA methods, providing guidance for the concept of multi-indicator management. Our results indicate that it may be possible to use collaborative research and MPAs to provide fine-scale scientific guidance for management and quota-allocation using DLAs. This type of process could increase the feasibility of fisheries management that leverages DLAs, co-management, and collaborative science to better reflect the spatial diversity of the health of fished populations. 
+
+#Introduction
+
+* Why Care?
+    * Fisheries management can work [@Hilborn2014]
+    * But, the proven tools are designed for the data rich world, and much of the world is data poor. And in those places, things aren't working well [@Costello2012]
+    * Many tools have been proposed to address this (lots of example citations). It is clear that there are ways in which we can use data-limited approaches, but there's a lack of research on the actual implementation of these methods
+    * Where data-limited approached have been implemented, they have focused on catch-only methods. The US provides a clear example of this [@Berkson2015]. 
+    * While catch-only methods have many useful qualities, they can be quite limited both in their performance and their applicability. So, we should explore other approaches
+    * There have been MSE's
+    * Or bently and stokes 
+    * You try and count the fish in the sea, or you deceptively respond 
+    * Garamont and butterworth 
+    * Dowling 2008 applies it Australian fisheries 
+    * MPA angle 
+        * Here we apply some of these tried and true methods to see how we can use these conservation 
+        * This is the first tangible evidence in California to support the use of MPAs in fisheries management
+        * Let's start thinking about really leveraging the data
+        * Here's the five things that I recommend 
+        * Climate ready fisheries: How do you develop adaptive management institutions that respond to climate 
+        change 
+        * These MPAs provide a window into an unfished world: the canary in the coalmine 
+    * Plug CCFRP/White paper 
+    * Plug SNAP 
+    * Reach out for slides etc. 
+        
+    
+* The solution
+    * Length and reserve based assessments have a grounding in the literature 
+    * Length and reserve based assessments may be easier and more practical to collect for many communities. 
+    * In addition, these methods can allow for fine-scale spatial management (matching scale of management paper) that may not be possible 
+    * CCFRP provides a perfect example to evaluate the ability of length and reserve based data to provide useful data 
+    * We use the CCFRP data to evaluate a series of DLAs
+    
+* Methods
+    * CCFRP data
+    * Assessment methods
+    
+#Results
+
+1. Do assessments tell the same story?
+2. Does and aggregate assessment tell the same as individual sites?
+3. Is there the same story across species? 
+
+* Case study
+    * Pick one species and follow it through
+    * Plot and Discussion of Density Ratio
+    * Plot and discussion of F/M
+    * Plot and discussion of SPR
+    * What about spatial variation?
+        * A graph that shows both the final value and the slope since the first year at each of the sites as a point for each metric?
+        * Or a map?
+* Across species
+    * A sampling regime like this allows for evaluation of many species, especially useful in a data poor context that may not allow for individual management plans
+    * Do we need multi-species?
+    * Look at variability in current metrics/trend across species 
+    * Identify outlive species etc. 
+
+#Discussion
+
+* Limitations
+    * Selectivity
+    * Spatial stuff
+    * MPA SPR
+* For a single species, do we see concurrence across methods that could guide management?
+    * Density ratio poses a problem early on when the MPA is recovering: MPA recovers faster than fished area so density ratio goes down
+    * Do we see concurrence from catch curve and LBSPR F/M?
+    * How much spatial variability is there?
+* For multiple species, do we see concurrence across species?
+* What species fail? If so why? (e.g. ontogenetic shifts)
+* Take Home
+    * Programs like CCFRP can provide high resolution data that is very usable for management
+    * Evidence that the data are useful and robust
+    * But, whatever goes wrong in the results 
+    * Strong evidence that properly designed programs like CCFRP, together with fishery independent data, could serve as a data-limited alternative to catch-only methods
+    * Further research addressing MSE of these things will be useful
+    
+# Figures
+
+1. A map of the CCFRP study area
+2. Assessment summary for selected species
+    * Density Trends
+    * Catch curve and LBSPR F/M
+    * SPR
+3. Spatial variation for selected species
+    * For each method, points showing the aggregate value and the individual site values
+    * Or, a series of maps showing hetergeoneity of results. Might be better
+4. Copy of 2, but with lines for each species. If that gets too confusing, can just do the most recent year
+5. Some kind of graphical interpretation of multiple results by species: green yellow red depending on concurrence of metrics? Might be too much
+
+# Tables
+
+1. Life history values used
+
+

@@ -2780,13 +2780,18 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       }
       if (runMod$ModelFailed==F)
       {
+
       FitDiagnostic<- data.frame(runMod$Bins,runMod$Obs,runMod$Pred,runMod$Unfished)
       colnames(FitDiagnostic)<- c('Length','Observed','Predicted','Unfished')
       
       FitDiagnostic<- gather(FitDiagnostic,Model,Proportion,2:4)
       
       Selectivity<- runMod$Estimates %>% subset(Par=='SL50' | Par=='SL95')
+<<<<<<< HEAD
       browser()                                            
+=======
+                                                  
+>>>>>>> parent of b95fa31... DAMN IT
       pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
       print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
             + geom_vline(xintercept=Selectivity$Est))

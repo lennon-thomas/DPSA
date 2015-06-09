@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 # Number of parameters = 2  Objective function value = 0.514665  Maximum gradient component = 4.98615e-05
 # logSL50:
 2.93673522483
 # logDelta:
 1.85886673414
+=======
+# Number of parameters = 2  Objective function value = 0.549219  Maximum gradient component = 1.68900e-05
+# logSL50:
+2.75847835881
+# logDelta:
+1.75427721475
+>>>>>>> parent of b95fa31... DAMN IT
 # logFM:
 0.00000000000
