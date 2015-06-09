@@ -2780,6 +2780,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       }
       if (runMod$ModelFailed==F)
       {
+
       FitDiagnostic<- data.frame(runMod$Bins,runMod$Obs,runMod$Pred,runMod$Unfished)
       colnames(FitDiagnostic)<- c('Length','Observed','Predicted','Unfished')
       
@@ -2787,10 +2788,10 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       
       Selectivity<- runMod$Estimates %>% subset(Par=='SL50' | Par=='SL95')
                                                   
-#       pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
-#       print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
-#             + geom_vline(xintercept=Selectivity$Est))
-#       dev.off()
+      pdf(paste(FigureFolder,'LBSPR Fit.pdf',sep=''))
+      print(ggplot(FitDiagnostic,aes(Length,Proportion,color=Model))+geom_point(size=3,alpha=0.9)
+            + geom_vline(xintercept=Selectivity$Est))
+      dev.off()
       ResidualAnalysis<- AssessLBSPRResiduals(runMod,Fish,Years[y])
       
       CohortDeviates<- rbind(CohortDeviates,ResidualAnalysis$CohortDeviates)
