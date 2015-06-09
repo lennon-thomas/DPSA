@@ -22,7 +22,7 @@ SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth,Theme)
 #   AssessData$UpperCI<- AssessData$UpperCI - AssessData$Value
 #   
 #   
-  pdf(file=paste(FigureFolder,'Assessment Summary.pdf',sep=''),width=16,height=14)
+  pdf(file=paste(FigureFolder,'Assessment Summary.pdf',sep=''),width=5,height=5)
   
 #   theme(legend.position='top')
   LengthPlot<- (ggplot(data=subset(LengthDat,Year==MaxYear),aes(Length,fill=MPA))+
@@ -43,19 +43,19 @@ SummaryPanel<- function(AssessData,LengthDat,Species,Site,YearsToSmooth,Theme)
            +scale_color_manual(name='',values=c("#1f78b4","#33a02c"))+scale_fill_manual(name='',values=c("#1f78b4","#33a02c"))+Theme)
   
   
-  DensityPlot<- (ggplot(data=subset(AssessData,Method=='DensityRatio'),aes(x=Year,y=Value))+
-             geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),fill='#253494',size=2,color='#253494')+ylab('Density Ratio')+geom_hline(yintercept=1,size=2,linetype='longdash')
+  CPUEPlot<- (ggplot(data=subset(AssessData,Method=='CPUERatio'),aes(x=Year,y=Value))+
+             geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),fill='#253494',size=2,color='#253494')+ylab('CPUE Ratio')+geom_hline(yintercept=1,size=2,linetype='longdash')
              +Theme)
   
   SPRPlot<- (ggplot(data=subset(AssessData,Method=='LBSPR' & Metric=='SPR'),aes(x=Year,y=Value))+
                    geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),size=2,fill='#b30000',color='#b30000')+ylab('SPR')+geom_hline(yintercept=0.4,size=2,linetype='longdash')
              +Theme)
   
-grid.arrange(LengthPlot,FPlot,DensityPlot,SPRPlot
+grid.arrange(LengthPlot,FPlot,CPUEPlot,SPRPlot
     ,nrow=2,ncol=2,main=paste(Species,'-',Sites[s],sep=''))
   dev.off()
 
-pdf(file=paste(FigureFolder,'Assessment Summary 2.pdf',sep=''),width=16,height=14)
+pdf(file=paste(FigureFolder,'Assessment Summary 2.pdf',sep=''),width=5,height=5)
 
 #   theme(legend.position='top')
 LengthPlot<- (ggplot(data=subset(LengthDat,Year==MaxYear),aes(Length,fill=MPA))+
@@ -74,15 +74,15 @@ FPlot<- (ggplot(data=subset(AssessData,(Method=='CatchCurve') & Metric=='FvM'),a
                        color="#336600",fill="#336600")+ylab('F/M')+
            geom_hline(yintercept=1,size=2,linetype='longdash')+Theme)
 
-DensityPlot<- (ggplot(data=subset(AssessData,Method=='DensityRatio'),aes(x=Year,y=Value))+
-                 geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),fill='#253494',size=2,color='#253494')+ylab('Density Ratio')+geom_hline(yintercept=1,size=2,linetype='longdash')
+CPUEPlot<- (ggplot(data=subset(AssessData,Method=='CPUERatio'),aes(x=Year,y=Value))+
+                 geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),fill='#253494',size=2,color='#253494')+ylab('CPUE Ratio')+geom_hline(yintercept=1,size=2,linetype='longdash')
                +Theme)
 
 SPRPlot<- (ggplot(data=subset(AssessData,Method=='LBSPR' & Metric=='SPR'),aes(x=Year,y=Value))+
              geom_smooth(se=F,stat='identity',aes(ymin=LowerCI,ymax=UpperCI),size=2,fill='#b30000',color='#b30000')+ylab('SPR')+geom_hline(yintercept=0.4,size=2,linetype='longdash')
            +Theme)
 
-grid.arrange(LengthPlot,FPlot,DensityPlot,SPRPlot
+grid.arrange(LengthPlot,FPlot,CPUEPlot,SPRPlot
              ,nrow=2,ncol=2,main=paste(Species,'-',Sites[s],sep=''))
 dev.off()
   

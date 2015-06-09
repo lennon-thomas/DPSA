@@ -1,6 +1,5 @@
 PlotDensityData<- function(DensityDat,FigureFolder,Fish,Species,Site,Theme)
 {
-
 #   DensityDat<- DensityData
     
   DensitySummary<- ddply(DensityDat,c('Year','MPA'),summarize,NumberDensity=mean(Count/SampleArea,na.rm=T),BiomassDensity=mean(Biomass/SampleArea,na.rm=T))
@@ -13,7 +12,7 @@ PlotDensityData<- function(DensityDat,FigureFolder,Fish,Species,Site,Theme)
   
   DensityDat$SiteType[DensitySummary$MPA==1]<- 'MPA'
   
-  pdf(file=paste(FigureFolder,Species,'-',Site,' Density Data.pdf',sep=''),height=15,width=18)
+  pdf(file=paste(FigureFolder,Species,'-',Site,' Density Data.pdf',sep=''),height=5,width=5)
   print(ggplot(data=DensitySummary,aes(Year,NumberDensity,color=SiteType))+geom_line(size=3)+
           scale_color_manual(name='',values=c(FishedColor,MPAColor))+
     ylab(expression(paste('Number/',km^{2},sep='')))+ggtitle(paste(Species,Site,sep='-'))+Theme)
