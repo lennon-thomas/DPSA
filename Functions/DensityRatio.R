@@ -1,16 +1,16 @@
-CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
+DensityRatio<- function(DenDat,LagLength,Weight,Form,Iterations,BootStrap)
 {
   ##################
   ###### DensityRatio ######
   ##################
   #Source:Loosely based on methods described in McGilliard et al. 2011 and Babcock & MacCall 2011
-  #Summary: Estimate N/K from CPUE inside and outside of marine reserves
+  #Summary: Estimate N/K from density inside and outside of marine reserves
   
-  # CPUEDat: The raw CPUE data
+  # DenDat: The raw density data
   # LagLength: The number of years of lagged data to use
   # Weight: The weight assigned to historic data
   #   #   
-  #       CPUEDat<- DensityData
+  #       DenDat<- DensityData
   #       
   #       LagLength=1
   #       
@@ -23,12 +23,12 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
   #       BootStrap=1
   #     
   ############################
-  ### Process CPUE Data ###  
+  ### Process Density Data ###	
   ############################
   
   ### Figure out timeline of data you want ###
   
-  Years<- sort(unique(CPUEDat$Year))
+  Years<- sort(unique(DenDat$Year))
   
   lag<- LagLength #lagged years
   
@@ -37,14 +37,20 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
   Output<- as.data.frame(matrix(NA,nrow=length(Years),ncol=9))
   
   colnames(Output)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
-
+  
+  #   Output$Method<- as.character(Output$Method)
+  #   
+  #   Output$Metric<- as.character(Output$Metric)
+  #   
+  #   Output$Flag<- as.character(Output$Flag)
+  #   
   MCOutput<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=6))
   
   colnames(MCOutput)<- c('Iteration','Year','Method','Value','Metric','Flag')
   
   MCDetails<- as.data.frame(matrix(NA,nrow=length(Years)*Iterations,ncol=4))
   
-  colnames(MCDetails)<- c('Iteration','Year','FishedCPUE','MPACPUE')
+  colnames(MCDetails)<- c('Iteration','Year','FishedDensity','MPADensity')
   
   Flag<- 'None'
   
@@ -52,7 +58,7 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   BaseFish<- Fish
   
-  SampleSize<- ddply(CPUEDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
+  SampleSize<- ddply(DenDat,c('Year'),summarize,SampleSize=sum(Count,na.rm=T))
   for (i in 1:Iterations)
   {
     
@@ -81,15 +87,15 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
       
       weights<- weight^t(apply(Lags,1,rev)) #weight assigned to each year
       
-      TempCPUEDat<- CPUEDat
+      TempDenDat<- DenDat
       
       
       if (i>1 & BootStrap==1) #Resample length data inside and outside of MPAs
       {
         
-        TempCPUEStorage<- as.data.frame(matrix(NA,nrow=0,ncol=dim(TempCPUEDat)[2]))
+        TempDenStorage<- as.data.frame(matrix(NA,nrow=0,ncol=dim(TempDenDat)[2]))
         
-        colnames(TempCPUEStorage)<- colnames(TempCPUEDat)
+        colnames(TempDenStorage)<- colnames(TempDenDat)
         
         cc<- 0
         
@@ -97,9 +103,9 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
         {
           
           
-          MPADat<- TempCPUEDat[TempCPUEDat$MPA==1 & TempCPUEDat$Year==LaggedYears[yy],]
+          MPADat<- TempDenDat[TempDenDat$MPA==1 & TempDenDat$Year==LaggedYears[yy],]
           
-          FishedDat<- TempCPUEDat[TempCPUEDat$MPA==0 & TempCPUEDat$Year==LaggedYears[yy],]
+          FishedDat<- TempDenDat[TempDenDat$MPA==0 & TempDenDat$Year==LaggedYears[yy],]
           
           NumPoints<- 1:dim(MPADat)[1]	
           
@@ -117,21 +123,22 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
           
           Size<- dim(TempDat)[1]
           
-          TempCPUEStorage[cc+1:Size,]<- TempDat
+          TempDenStorage[cc+1:Size,]<- TempDat
           
           cc<- cc+Size
           
         }
         
-        TempCPUEDat<- TempCPUEStorage
+        TempDenDat<- TempDenStorage
       }
       
-      #       ddply(TempCPUEDat,c('Year','MPA'),summarize,Count=sum(Count))
-      WeightedCPUE<- CalculateCPUE(TempCPUEDat,LaggedYears,weights,Form)
+      #       ddply(TempDenDat,c('Year','MPA'),summarize,Count=sum(Count))
       
-      inside<- WeightedCPUE$MPACPUE
+      WeightedDensity<- CalculateDensity(TempDenDat,LaggedYears,weights,Form)
       
-      outside<- WeightedCPUE$FishedCPUE
+      inside<- WeightedDensity$MPADensity
+      
+      outside<- WeightedDensity$FishedDensity
       
       WeightedRatio<- outside/inside
       
@@ -144,7 +151,7 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
       
       MCOutput$Year[c]<- Years[y]
       
-      MCOutput$Method[c]<- 'CPUERatio'
+      MCOutput$Method[c]<- 'DensityRatio'
       
       MCOutput$Value[c]<- WeightedRatio
       
@@ -156,9 +163,9 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
       
       MCDetails$Year[c]<- Years[y]
       
-      MCDetails$FishedCPUE[c]<- WeightedOut
+      MCDetails$FishedDensity[c]<- WeightedOut
       
-      MCDetails$MPACPUE[c]<- WeightedIn
+      MCDetails$MPADensity[c]<- WeightedIn
       
       
     } #Close year loop		
@@ -168,7 +175,7 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   MCOutput$Value[is.nan(MCOutput$Value)]<- NA
   
-  MCOutput$Flag[is.na(MCOutput$Value)]<- 'No CPUE Ratio Possible'
+  MCOutput$Flag[is.na(MCOutput$Value)]<- 'No Density Ratio Possible'
   
   MCOutput$Value[is.na(MCOutput$Value)]<- -999
   
@@ -182,7 +189,7 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   Output$Year<- Years
   
-  Output$Method<- 'CPUERatio'
+  Output$Method<- 'DensityRatio'
   
   Output$Value<- TrueOutput$Value
   
@@ -192,7 +199,7 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
   
   Output$SD<- NA
   
-  Output$Metric<- 'Biomass CPUE Ratio'
+  Output$Metric<- 'Biomass Density Ratio'
   
   Output$Flag<-TrueOutput$Flag 
   
@@ -209,7 +216,7 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
       
       TempValue<- sort(as.numeric(Temp$Value))
       
-      # pdf(file=paste(FigureFolder,Years[y],' CPUE Ratio Histogram.pdf',sep=''))
+      # pdf(file=paste(FigureFolder,Years[y],' Density Ratio Histogram.pdf',sep=''))
       # hist(TempValue,xlab='N/K',main=NA)
       # dev.off()
       
@@ -224,26 +231,27 @@ CPUERatio<- function(CPUEDat,LagLength,Weight,Form,Iterations,BootStrap)
       UpperCI<- TempValue[Top]
       
       SD<- sd(TempValue[Bottom:Top],na.rm=T)
-      Output[y,]<- I(data.frame(Years[y],'CPUERatio',SampleSize$SampleSize[y],MeanMetric,LowerCI,UpperCI,SD,'Biomass CPUE Ratio',TrueOutput$Flag[y],stringsAsFactors=F))
+      
+      Output[y,]<- I(data.frame(Years[y],'DensityRatio',SampleSize$SampleSize[y],MeanMetric,LowerCI,UpperCI,SD,'Biomass Density Ratio',TrueOutput$Flag[y],stringsAsFactors=F))
       
     }
     
   }
   
-  MCDetails$MPACPUE[MCDetails$MPACPUE==0]<- NA
-
-  MCDetails$CPUERatio<- MCDetails$FishedCPUE/MCDetails$MPACPUE
+  MCDetails$MPADensity[MCDetails$MPADensity==0]<- NA
   
-  pdf(file=paste(FigureFolder,' CPUE Ratio NvK Boxplots.pdf',sep=''))
-  boxplot((MCDetails$FishedCPUE/MCDetails$MPACPUE)~MCDetails$Year,frame=F,xlab='Year',ylab='Fished CPUE/Unfished CPUE',notch=T,outline=F)
+  MCDetails$DensityRatio<- MCDetails$FishedDensity/MCDetails$MPADensity
+  
+  pdf(file=paste(FigureFolder,' Density Ratio NvK Boxplots.pdf',sep=''))
+  boxplot((MCDetails$FishedDensity/MCDetails$MPADensity)~MCDetails$Year,frame=F,xlab='Year',ylab='Fished Density/Unfished Density',notch=T,outline=F)
   dev.off()
   
-  pdf(file=paste(FigureFolder,' CPUE Ratio Fished CPUE Boxplots.pdf',sep=''))
-  boxplot((MCDetails$FishedCPUE)~MCDetails$Year,frame=F,xlab='Year',ylab='CPUE',notch=T,outline=F)
+  pdf(file=paste(FigureFolder,' Density Ratio Fished Density Boxplots.pdf',sep=''))
+  boxplot((MCDetails$FishedDensity)~MCDetails$Year,frame=F,xlab='Year',ylab='Density',notch=T,outline=F)
   dev.off()
   
-  pdf(file=paste(FigureFolder,' CPUE Ratio MPA CPUE Boxplots.pdf',sep=''))
-  boxplot((MCDetails$MPACPUE)~MCDetails$Year,frame=F,xlab='Year',ylab='CPUE',notch=T,outline=F)
+  pdf(file=paste(FigureFolder,' Density Ratio MPA Density Boxplots.pdf',sep=''))
+  boxplot((MCDetails$MPADensity)~MCDetails$Year,frame=F,xlab='Year',ylab='Density',notch=T,outline=F)
   dev.off()
   
   Fish<- BaseFish

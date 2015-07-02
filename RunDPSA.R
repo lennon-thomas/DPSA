@@ -7,6 +7,7 @@ rm(list = ls())
 library(lattice)
 source("AssessmentModules.R") #Pull in assessment modules
 source("SubFunctions.R") #Pull in helper functions for assessment modules
+sapply(list.files(pattern="[.]R$", path="Functions", full.names=TRUE), source)
 
 ### Pull in Assessment Data ###
 

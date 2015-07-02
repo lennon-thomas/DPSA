@@ -4,19 +4,30 @@
 AddMissingFish<- function(Data)
 {
   
-#   Data<- GFD
+  #   Data<- GFD
   LifeStart<- which(colnames(Data)=='Rockfish')
   
   SpeciesTable<- unique(Data [,colnames(Data)[LifeStart:dim(Data)[2]]])
-
-  SpeciesSightings<- ddply(Data,c('Site','CommName'),summarize,There=length(CommName))
   
-  SpeciesSightingsByTrip<- ddply(Data,c('sample_Idcellday'),summarize,SpeciesSeen=length(unique(CommName)))
+  #   SpeciesSightings<- ddply(Data,c('Site','CommName'),summarize,There=length(CommName))
+  
+  SpeciesSightings<- Data %>%
+    group_by(Site,CommName) %>%
+    summarize(There=length(CommName))
+  
+  #     ddply(Data,c('Site','CommName'),summarize,There=length(CommName))
+  
+  #   SpeciesSightingsByTrip<- ddply(Data,c('sample_Idcellday'),summarize,SpeciesSeen=length(unique(CommName)))
+  
+  SpeciesSightingsByTrip<- Data %>%
+    group_by(sample_Idcellday) %>%
+    summarize(SpeciesSeen=length(unique(CommName)))
+  
   
   BlankVars<- colnames(Data)
   
   BlankVars<- BlankVars[!(BlankVars%in%c('Year','Month','Site','sample_Idcellday','Sample_Type','Sample_Area','Area_units',
-                                         'Angler_hours','MPA_or_REF','GRID_ID_cell','Meters.to.MPA.border','MeanLon','MeanLat'))]
+                                         'Angler_hours','MPA_or_REF','GRID_ID_cell','Meters.to.MPA.border','MeanLon','MeanLat','SiteId'))]
   Sites<- unique(Data$Site)
   
   for (s in 1:length(Sites))
@@ -37,14 +48,14 @@ AddMissingFish<- function(Data)
       {
         BlankTrip<- Data[Data$sample_Idcellday==Trips[t],][1,]
         
-        BlankTrip<- RepMat(BlankTrip,length(SpeciesMissing),'Rows')
+        BlankTrip<- RepMat(BlankTrip,length(SpeciesMissing))
         
         BlankTrip[,colnames(BlankTrip) %in% BlankVars]<- NA
         
         MissingData<- SpeciesTable[SpeciesTable$CommName %in% SpeciesMissing,]
         
         BlankTrip[,'length_cm']<- 0
-
+        
         BlankTrip [,colnames(MissingData)]<- MissingData
         
         Data<- rbind(Data,BlankTrip)

@@ -7,7 +7,7 @@
 
 ### Setup Working Environment ###
 rm(list=ls())
-set.seed(446)
+set.seed(442)
 
 # library(lattice)
 library(plyr)
@@ -23,50 +23,60 @@ library(tidyr)
 
 sapply(list.files(pattern="[.]R$", path="Functions", full.names=TRUE), source)
 
-source("AssessmentModules.R") #Pull in assessment modules
+# source("AssessmentModules.R") #Pull in assessment modules
 source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment<- 'FUCK LBSPR'
+Assessment <- '4.4 On The Table'
 
 dir.create(Assessment)
 
-NumIterations<- 10
+NumIterations <- 100
 
-Font<- 'Helvetica'
+SPRRef <- 0.4
 
-FontColor<- 'Black'
+CPUERef <- 0.4
 
-RunAssessments<- TRUE
+Font <- 'Helvetica'
 
-NumberOfSpecies<- 5
+FontColor <- 'Black'
 
-ReserveYear<- 2007
+PlotFontSize <- 11
 
-Assessments<- c('CatchCurve','CPUERatio','LBSPR')
+RunAssessments <- FALSE 
+
+NumberOfSpecies <- 5
+
+ReserveYear <- 2007
+
+Assessments <- c('CatchCurve','CPUERatio','LBSPR')
+
+MonteCarloNames  <- c('Site','Species','Assessment','Itertation','Metric','Value')
 
 # Assessments<- c('LBSPR')
 
-DefaultSD<- 0.001
+DefaultSD <- 0.05
 
-MinSampleSize<- 150
+MinSampleSize <- 150
 
-MPAColor<- "#1b9e77"
+MPAColor <- "#1b9e77"
 
-FishedColor<- "#d95f02"
+FishedColor <- "#d95f02"
 
 ### Pull in Assessment Data ###
 
-GFD<- read.csv('CCFRP Data/For_Jono_CCFRPdata_April2014.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
+GFD <- read.csv('CCFRP Data/For_Jono_CCFRPdata_April2014.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
 
-GFD<- subset(GFD,is.na(Year)==F)
+GFD <- subset(GFD,is.na(Year)==F)
 
-Locations<- read.csv('CCFRP Data/CCFRP_2014Data_withGPS.csv')
+Locations <- read.csv('CCFRP Data/CCFRP_2014Data_withGPS.csv')
 
-Locations$SiteId<- paste(Locations$Area,Locations$Site..MPA..REF,sep='-')
+Locations$SiteId <- paste(Locations$Area,Locations$Site..MPA..REF,sep='-')
 
-SiteGPS<- ddply(Locations,c('SiteId'),summarize,MeanLon=mean(Lon.Center.Point,na.rm=T),MeanLat=mean(Lat.Center.Point,na.rm=T))
+SiteGPS<- Locations %>%
+  group_by(SiteID) %>%
+  summarize(MeanLon=mean(Lon.Center.Point,na.rm=T),MeanLat=mean(Lat.Center.Point,na.rm=T))
 
 GFD$SiteId<- paste(GFD$Site,GFD$MPA_or_REF,sep='-')
 
@@ -96,7 +106,12 @@ GFD$AgeMatSource<- NA
 
 GFD$t0[is.na(GFD$t0)]<- 0
 
-SpeciesCatches<- ddply(GFD,c('CommName'),summarize,NumberSampled=length(length_cm),HasLifeHistory=mean(vbk))
+# SpeciesCatches<- ddply(GFD,c('CommName'),summarize,NumberSampled=length(length_cm),HasLifeHistory=mean(vbk))
+
+SpeciesCatches <- GFD %>%
+  group_by(CommName) %>%
+  summarize(NumberSampled = length(length_cm),HasLifeHistory = mean(vbk))
+  
 
 SpeciesCatches$NumberSampled<- SpeciesCatches$NumberSampled*as.numeric(is.na(SpeciesCatches$HasLifeHistory)==F)*as.numeric((SpeciesCatches$NumberSampled)>MinSampleSize)
 
@@ -114,6 +129,8 @@ Sites<- c('All')
 
 AssessmentResults<- list()
 
+MonteResults<- list()
+
 Counter<- 0
 
 if (RunAssessments==T)
@@ -123,17 +140,23 @@ if (RunAssessments==T)
   {
     
     show(Sites[s])
+    
     WhereSite<- GFD$Site==Sites[s]
     
     if (Sites[s]=='All'){WhereSite<- rep(1,dim(GFD)[1])==1}
     
     
-    TopSpecies<- ddply(GFD[WhereSite,],c('CommName'),summarize,NumSamples=length(length_cm[length_cm>0]))
+    TopSpecies<- GFD[WhereSite,] %>%
+      group_by(CommName) %>%
+      summarize(NumSamples=length(length_cm[length_cm>0]))
+      
+#     TopSpecies<- ddply(GFD[WhereSite,],c('CommName'),summarize,NumSamples=length(length_cm[length_cm>0]))
     
-    Fishes<- subset(TopSpecies,NumSamples>MinSampleSize)$CommName
     
-      for (f in 1:length(Fishes))
-#     for (f in 2)
+        Fishes<- subset(TopSpecies,NumSamples>MinSampleSize)$CommName
+    
+    for (f in seq_len(length(Fishes)))
+      #     for (f in 9)
     {
       
       show(Fishes[f])
@@ -213,7 +236,7 @@ if (RunAssessments==T)
       write.csv(file=paste(Directory,AssessmentName,'_LengthData.csv',sep=''),LengthData)
       
       write.csv(file=paste(Directory,AssessmentName,'_DensityData.csv',sep=''),DensityData)
-
+      
       write.csv(file=paste(Directory,AssessmentName,'_CPUEData.csv',sep=''),DensityData)
       
       FigureFolder<- paste(Directory,'Figures/',sep='')
@@ -233,25 +256,18 @@ if (RunAssessments==T)
       
       Theme<- theme(legend.position='top',plot.background=element_rect(color=NA),
                     rect=element_rect(fill='transparent',color=NA)
-                    ,text=element_text(size=16,family=Font,color=FontColor),
+                    ,text=element_text(size=12,family=Font,color=FontColor),
                     axis.text.x=element_text(color=FontColor),
-                    axis.text.y=element_text(color=FontColor),legend.key.size=unit(2.5,'cm'))
+                    axis.text.y=element_text(color=FontColor),legend.key.size=unit(1,'cm'))
       
       PlotLengthData(LengthData,FigureFolder,Fish,Species,Sites[s],Theme)
       
       PlotDensityData(DensityData,FigureFolder,Fish,Species,Sites[s],Theme)
-
+      
       PlotCPUEData(CPUEData,FigureFolder,Fish,Species,Sites[s],Theme)
       
       MapCCFRP(ReformData)
-      
-      ### Run Assessments ###
-      
-      #     AssessmentResults<- as.data.frame(matrix(NA,nrow=length(Assessments)*10,ncol=9))
-      #     
-      #     colnames(AssessmentResults)<- c('Year','Method','SampleSize','Value','LowerCI','UpperCI','SD','Metric','Flag')
-      #     
-      #     AssessmentResults$Year<- as.numeric(AssessmentResults$Year)
+    
       
       Fish$LHITol<- 0.99
       
@@ -287,13 +303,24 @@ if (RunAssessments==T)
           {
             
             
-            Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight='AgeBased',WeightedRegression=1,
-                              ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,Iterations=NumIterations,BootStrap=1,LifeError=1,HistInterval=1)$Output
+            Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight=0,WeightedRegression=1,
+                              ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,GroupMPA=1,Iterations=NumIterations,BootStrap=1,LifeError=1,HistInterval=1)
+            
+            MonteCarlo<- Temp$Details
+            
+            Temp<- Temp$Output
             
             StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
               rename(Site=Sites.s.,Assessment=Assessments.a.)
             
+            StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','FvM')],stringsAsFactors=F) %>%
+              rename(Site=Sites.s.,Assessment=Assessments.a.,Value=FvM) %>%
+              mutate(Metric='F/M (CC)')
+            
+            MonteResults[[Counter]]<- StoreMonte
+            
             AssessmentResults[[Counter]]<-StoreAssess
+            
             
           }
         }
@@ -302,7 +329,17 @@ if (RunAssessments==T)
         if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
         {
           
-          Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)$Output
+          Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)
+          
+          MonteCarlo<- Temp$Details
+          
+          Temp<- Temp$Output
+          
+          StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','DensityRatio')],stringsAsFactors=F) %>%
+            rename(Site=Sites.s.,Assessment=Assessments.a.,Value=DensityRatio) %>%
+            mutate(Metric='DensityRatio')
+          
+          MonteResults[[Counter]]<- StoreMonte
           
           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
             rename(Site=Sites.s.,Assessment=Assessments.a.)
@@ -313,7 +350,18 @@ if (RunAssessments==T)
         if (Assessments[a]=='CPUERatio') #Run density ratio analysis 
         {
           
-          Temp<- CPUERatio(CPUEData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)$Output
+          Temp<- CPUERatio(CPUEData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)
+          
+          MonteCarlo<- Temp$Details
+          
+          Temp<- Temp$Output
+          
+          StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','CPUERatio')],stringsAsFactors=F) %>%
+            rename(Site=Sites.s.,Assessment=Assessments.a.,Value=CPUERatio) %>%
+            mutate(Metric='CPUERatio')
+          
+          MonteResults[[Counter]]<- StoreMonte
+          
           
           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
             rename(Site=Sites.s.,Assessment=Assessments.a.)
@@ -349,11 +397,20 @@ if (RunAssessments==T)
             #                         LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
             #                         SL50Max=LengthQuantile[2],DeltaMin=NA,DeltaMax=NA,IncludeReserve=TRUE)
             
-
-            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=NumIterations,BootStrap=0,
-                          LifeError=0,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
-                          SL50Max=LengthQuantile[2],DeltaMin=0.01,DeltaMax=.2*Fish$Linf,IncludeReserve=FALSE)
+            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=NumIterations,BootStrap=1,
+                          LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
+                          SL50Max=LengthQuantile[2],DeltaMin=0.01,DeltaMax=.5*Fish$Linf,IncludeReserve=TRUE)
             
+            MonteCarlo<- Temp2$Details
+            
+            StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','FvM','SPR')],stringsAsFactors=F) %>%
+              gather('Metric','Value',FvM,SPR,convert=T) %>%
+              rename(Site=Sites.s.,Assessment=Assessments.a.) %>%
+              select(Species,Site,Assessment,Iteration,Year,Value,Metric)
+            
+            StoreMonte$Metric[StoreMonte$Metric=='FvM']<- 'F/M (LBSR)'
+            
+            MonteResults[[Counter]]<- StoreMonte
             
             Temp<- Temp2$Output
             
@@ -409,11 +466,11 @@ if (RunAssessments==T)
         
         Theme<- theme(legend.position='top',plot.background=element_rect(color=NA),
                       rect=element_rect(fill='transparent',color=NA)
-                      ,text=element_text(size=16,family=Font,color=FontColor),
+                      ,text=element_text(size=12,family=Font,color=FontColor),
                       axis.text.x=element_text(color=FontColor),
                       axis.text.y=element_text(color=FontColor))
         
-        SummaryPanel(CurrentResults,LengthData,Species,Sites[s],YearsToSmooth=3,Theme)
+        SummaryPanel(CurrentResults,LengthData,CPUEData,Species,Sites[s],YearsToSmooth=3,Theme)
         
       }
       save.image(file=paste(ResultFolder,AssessmentName,'_Settings.RData',sep='')) #Save settings used to produce current results
@@ -423,7 +480,7 @@ if (RunAssessments==T)
   } #Close sites (s) loop
   
   
-  save(file=paste(Assessment,'/Assessment Results.Rdata',sep=''),AssessmentResults)
+  save(file=paste(Assessment,'/Assessment Results.Rdata',sep=''),AssessmentResults,MonteResults)
   
   save(file=paste(Assessment,'/Raw Data.Rdata',sep=''),GFD)
 }
@@ -435,20 +492,17 @@ if (RunAssessments==F)
 
 FlatAssessments<- ldply(AssessmentResults)
 
-
 SAData<- read.csv('CCFRP Data/CCFRP Stock Assessment Values.csv')
 
 SAData$Assessment<- 'Stock Assessment'
-
-ddply(FlatAssessments,c('Species','Year','Metric'),summarize,Number=mean(Value))
-
-
 
 Ramp<- 'RdYlGn'
 
 LineKeynoteTheme<- theme(plot.background=element_rect(color=NA),rect=element_rect(fill='transparent',color=NA)
                          ,text=element_text(size=16,family=Font,color=FontColor))
 
+
+PanelTheme<- theme(text=element_text(size=16,family=Font,color=FontColor))
 
 KeynoteTheme<- theme(plot.background=element_rect(color=NA),rect=element_rect(fill='transparent',color=NA)
                      ,text=element_text(size=16,family=Font,color=FontColor),
@@ -468,15 +522,15 @@ AggPlot<- function(PlotDat,PlotName,Theme,Order)
   {
     PlotDat$Species<- reorder((PlotDat$Species),1/(PlotDat$Value+abs(min(PlotDat$Value,na.rm=T))))
   }
-    
-    
-
-    print(ggplot(data=PlotDat,
-                 aes(x=(Species),y=Value,fill=Species))+scale_fill_brewer(palette=Ramp)
-          +ylab(PlotName)+xlab(NULL)
-          +geom_bar(stat='identity',color='black')+
-            Theme+geom_hline(yintercept=0,size=2))
-
+  
+  
+  
+  print(ggplot(data=PlotDat,
+               aes(x=(Species),y=Value,fill=Species))+scale_fill_brewer(palette=Ramp)
+        +ylab(PlotName)+xlab(NULL)
+        +geom_bar(stat='identity',color='black')+
+          Theme+geom_hline(yintercept=0,size=2))
+  
 }
 
 OrderDat<- function(PlotDat,OrdVar,OrdBy,Order)
@@ -493,29 +547,56 @@ OrderDat<- function(PlotDat,OrdVar,OrdBy,Order)
   return(PlotDat)
 }
 
-pdf(paste(Assessment,'/Across Species Summary.pdf',sep=''))
+pdf(paste(Assessment,'/CC FvM.pdf',sep=''))
 
 PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='FvM' & Method=='CatchCurve' & Site=='All')
 
-AggPlot(PlotDat,'FvM',KeynoteTheme,'Descending')
+CCFvMPlot<- AggPlot(PlotDat,'FvM',KeynoteTheme,'Descending')$plot
+
+print(CCFvMPlot)
+dev.off()
+
+pdf(paste(Assessment,'/LBSPR FvM.pdf',sep=''))
 
 PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='FvM' & Method=='LBSPR' & Site=='All')
 
-AggPlot(PlotDat,'FvM',KeynoteTheme,'Descending')
+LBSPRFvMPlot<- AggPlot(PlotDat,'FvM',KeynoteTheme,'Descending')$plot
+
+print(LBSPRFvMPlot)
+
+dev.off()
+
+pdf(paste(Assessment,'/LBSPR SPR.pdf',sep=''))
 
 PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='SPR' & Site=='All')
 
-AggPlot(PlotDat,'SPR',KeynoteTheme,'Ascending')
+SPRPlot<- AggPlot(PlotDat,'SPR',KeynoteTheme,'Ascending')$plot
+
+print(SPRPlot)
+
+dev.off()
+
+pdf(paste(Assessment,'/CPUE Ratio.pdf',sep=''))
 
 PlotDat<- subset(FlatAssessments,Year==2014 & Metric=='Biomass CPUE Ratio' & Site=='All')
 
-AggPlot(PlotDat,'CPUE Ratio',KeynoteTheme,'Ascending')
+CPUEPlot<- AggPlot(PlotDat,'CPUE Ratio',KeynoteTheme,'Ascending')$plot
+
+print(CPUEPlot)
+
+dev.off()
 
 AllAssess<- subset(FlatAssessments,Site=='All')  %>% mutate(SA=paste(Species,Method,Metric,sep='-'))
 
 SAS<- unique(AllAssess$SA)
 
 AllAssess$FSlope<- NA
+
+AllAssess$Value[!is.finite(AllAssess$Value)]<- NA
+
+AllAssess$LowerCI[!is.finite(AllAssess$LowerCI)]<- NA
+
+AllAssess$UpperCI[!is.finite(AllAssess$UpperCI)]<- NA
 
 for (i in 1:length(SAS))
 {
@@ -525,23 +606,178 @@ for (i in 1:length(SAS))
   AllAssess$Slope[AllAssess$SA==SAS[i]]<- FSlope
 }
 
+write.csv(file=paste(Assessment,'/Complete Assessment Results.csv',sep=''),AllAssess)
+
 Ordered<- OrderDat(subset(AllAssess,Year==2014 & Metric=='FvM' & Method=='CatchCurve'),'Species','Slope','Descending')
 
-print(ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in F/M')
-      +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
+pdf(paste(Assessment,'/CC FvM Trend.pdf',sep=''))
 
+CCFvMTrendPlot<- (ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in F/M')
+                  +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
+
+print(CCFvMTrendPlot)
+
+dev.off()
 
 Ordered<- OrderDat(subset(AllAssess,Year==2014 & Metric=='SPR'),'Species','Slope','Increasing')
 
+pdf(paste(Assessment,'/SPR Trend.pdf',sep=''))
 
-print(ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in SPR')
-      +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
 
+SPRTrend<- (ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in SPR')
+            +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
+
+print(SPRTrend)
+
+dev.off()
 
 Ordered<- OrderDat(subset(AllAssess,Year==2014 & Metric=='Biomass CPUE Ratio'),'Species','Slope','Increasing')
 
-print(ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in CR')
-      +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
+pdf(paste(Assessment,'/CPUE Ratio Trend.pdf',sep=''))
+
+CPUETrend<- (ggplot(data=,Ordered,aes(x=factor(Species),y=Slope,fill=Species))+scale_fill_brewer(palette=Ramp)+ylab('Trend in CR')
+             +geom_bar(stat='identity',color='black')+KeynoteTheme+xlab(NULL)+geom_hline(yintercept=0,size=2))
+print(CPUETrend)
 
 dev.off()
+
+
+## More Summary Plots
+
+AllMonte<- ldply(MonteResults) %>%
+  filter(is.na(Value)==F & Value<2000)
+
+AllMonte$RefPoint[grepl('F/M',AllMonte$Metric)]<- AllMonte$Value[grepl('F/M',AllMonte$Metric)]
+
+AllMonte$RefPoint[AllMonte$Metric=='SPR']<- (AllMonte$Value/SPRRef )[AllMonte$Metric=='SPR']
+
+AllMonte$RefPoint[AllMonte$Metric=='CPUERatio']<- (AllMonte$Value/CPUERef )[AllMonte$Metric=='CPUERatio']
+
+AllMonte$GoodThing[grepl('F/M',AllMonte$Metric) & AllMonte$RefPoint>1] <- 'Bad Thing'
+
+AllMonte$GoodThing[grepl('F/M',AllMonte$Metric) & AllMonte$RefPoint<=1] <- 'Good Thing'
+
+AllMonte$GoodThing[AllMonte$Metric == 'SPR' & AllMonte$RefPoint<=1] <- 'Bad Thing'
+
+AllMonte$GoodThing[AllMonte$Metric == 'SPR' & AllMonte$RefPoint>1] <- 'Good Thing'
+
+AllMonte$GoodThing[AllMonte$Metric == 'CPUERatio' & AllMonte$RefPoint<=1] <- 'Bad Thing'
+
+AllMonte$GoodThing[AllMonte$Metric == 'CPUERatio' & AllMonte$RefPoint>1] <- 'Good Thing'
+
+AllMonte$RelRefPoint[grepl('F/M',AllMonte$Metric)]<- 100*(1-AllMonte$Value[grepl('F/M',AllMonte$Metric)])
+
+AllMonte$RelRefPoint[AllMonte$Metric=='SPR']<- 100*((AllMonte$Value/SPRRef )-1)[AllMonte$Metric=='SPR']
+
+AllMonte$RelRefPoint[AllMonte$Metric=='CPUERatio']<- 100*((AllMonte$Value/CPUERef)-1)[AllMonte$Metric=='CPUERatio']
+
+# AllMonte$RelRefPoint_UCI[AllMonte$Metric=='FvM']<- 100*(1-AllMonte$UpperCI[AllMonte$Metric=='FvM'])
+# 
+# AllMonte$RelRefPoint_UCI[AllMonte$Metric=='SPR']<- 100*(AllMonte$UpperCI/SPRRef-1)[AllMonte$Metric=='SPR']
+# 
+# AllMonte$RelRefPoint_UCI[AllMonte$Metric=='CPUERatio']<- 100*(AllMonte$UpperCI/CPUERef -1)[AllMonte$Metric=='CPUERatio']
+# 
+# AllMonte$RelRefPoint_LCI[AllMonte$Metric=='FvM']<- 100*(1-AllMonte$LowerCI[AllMonte$Metric=='FvM'])
+# 
+# AllMonte$RelRefPoint_LCI[AllMonte$Metric=='SPR']<- 100*(AllMonte$LowerCI/SPRRef-1)[AllMonte$Metric=='SPR']
+# 
+# AllMonte$RelRefPoint_LCI[AllMonte$Metric=='CPUERatio']<- 100*(AllMonte$LowerCI/CPUERef-1 )[AllMonte$Metric=='CPUERatio']
+AllMonte$RelRefPoint<- pmax(-200,pmin(AllMonte$RelRefPoint,200))
+
+
+AllMonte<- AllMonte %>%
+  group_by(Species) %>%
+  mutate(RanAllAssess=length(unique(Metric))==4) %>%
+  ungroup() %>%
+  group_by(Species,Metric,Year) %>%
+  mutate(MeanRelRef=mean(RelRefPoint,na.rm=T))
+
+PaperBarTheme<- theme(text=element_text(size=PlotFontSize,family = Font,color = FontColor),
+                      axis.text.x=element_text(angle=45,hjust=0.9,vjust=0.9)) 
+# PaperTheme<- theme(text=element_text(size=PlotFontSize,family = Font,color = FontColor),panel.background = element_blank())
+
+PaperTheme<- theme(text=element_text(size=PlotFontSize,family = Font,color = FontColor))
+
+
+AllMonte<- AllMonte %>%
+  group_by(Species,Metric) %>%
+  mutate(Lag1RefPoint=lag(RelRefPoint),Lag2RefPoint=lag(RelRefPoint,2),Lag1Value=lag(Value,1),Lag2Value=lag(Value,2))
+
+AllMonte$SmoothRelRefPoint=apply(AllMonte[,c('RelRefPoint','Lag1RefPoint','Lag2RefPoint')],1,weighted.mean,c(1,1,1))
+
+AllMonte$SmoothValue=apply(AllMonte[,c('Value','Lag1Value','Lag2Value')],1,weighted.mean,c(1,1,1))
+
+
+pdf(file=paste(Assessment,'Percent Deviation Plot.pdf',sep='/'))
+PercDevPlot<- (ggplot(data=subset(AllMonte,Year==max(Year) & RanAllAssess==T),aes(factor(Metric),SmoothRelRefPoint,fill=MeanRelRef))
+               +geom_boxplot()+facet_wrap(~Species)+PaperBarTheme+geom_hline(yintercept=1)+
+                 ylab('% Deviation From Target')
+               +theme(legend.position='none',axis.title.x=element_blank())+scale_fill_gradient2(low='red',mid='white',high='green'))
+(PercDevPlot)
+dev.off()
+
+pdf(file=paste(Assessment,'Reference Point Plot.pdf',sep='/'))
+ReferencePlot<- (ggplot(data=subset(AllMonte,Year==max(Year) & RanAllAssess==T),aes(factor(Metric),RefPoint,fill=GoodThing))
+                 +geom_violin()+facet_wrap(~Species,scale='free_y')+PaperBarTheme+geom_hline(yintercept=1)+
+                   xlab("")+ylab('Relative to Reference Point')
+                 +scale_fill_manual(name='',values=c('red','blue')))
+(ReferencePlot)
+dev.off()
+
+
+AllMonte<- AllMonte %>%
+  group_by(Species,Assessment) %>%
+  mutate(NumAssessYears=length(unique(Year))) 
+
+pdf(file=paste(Assessment,'Monte Carlo Summary Plots.pdf',sep='/'))
+
+FMCCSumPlot<- (ggplot(data=subset(AllMonte,Metric=="F/M (CC)" & NumAssessYears>=1),aes(Year,Value))
+               +geom_point(aes(Year,Value),alpha=0.1)+ylab('F/M (CC)')+
+                 geom_smooth(method='loess',size=2)+facet_wrap(~Species,scales='free_y')
+               +geom_hline(yintercept=1,linetype='longdash')+PaperTheme+theme(axis.title.x=element_blank()))
+
+FMCCSumPlot
+
+FMLBSPRSumPlot<- (ggplot(data=subset(AllMonte,Metric=="F/M (LBSR)" & NumAssessYears>=1),aes(Year,Value))
+                  +geom_point(aes(Year,Value),alpha=0.1) +ylab('F/M (LBSPR)') +
+                    geom_smooth(method='loess',size=2) +facet_wrap(~Species,scales='free_y') 
+                  +geom_hline(yintercept=1,linetype='longdash') 
+                  +PaperTheme+theme(axis.title.x=element_blank()))
+
+FMLBSPRSumPlot
+
+SPRSumPlot<- (ggplot(data=subset(AllMonte,Metric=="SPR" & NumAssessYears>=1),aes(Year,Value))
+              +geom_point(aes(Year,Value),alpha=0.1)+ylab('SPR')+
+                geom_smooth(method='loess',size=2)+facet_wrap(~Species,scales='free_y')+geom_hline(yintercept=0.4,linetype='longdash')
+              +PaperTheme+theme(axis.title.x=element_blank()))
+
+SPRSumPlot
+
+CPUESumPlot<- (ggplot(data=subset(AllMonte,Metric=="CPUERatio" & NumAssessYears>=1),aes(Year,Value))
+               +geom_point(aes(Year,Value),alpha=0.1)+ylab('CPUE Ratio')+
+                 geom_smooth(method='loess',size=2)+facet_wrap(~Species,scales='free_y')+geom_hline(yintercept=0.4,linetype='longdash')
+               +PaperTheme+theme(axis.title.x=element_blank()))
+
+CPUESumPlot
+
+dev.off()
+
+pdf(file=paste(Assessment,'2014 Status Plots.pdf',sep='/'))
+RecentStatusPlot<- (ggplot(data=subset(AllMonte,Year==2014),aes(Species,SmoothValue,fill=Species))+geom_violin()+facet_wrap(~Metric,scales='free_y')+
+                      theme(legend.position='none',axis.title.x=element_blank())
+                    +PaperBarTheme+ylab('Value'))
+RecentStatusPlot
+dev.off()
+
+pdf(file=paste(Assessment,'2014 Status BoxPlots.pdf',sep='/'))
+RecentStatusBoxPlot<- (ggplot(data=subset(AllMonte,Year==2014),aes(Species,SmoothValue,fill=Species))+geom_boxplot()+facet_wrap(~Metric,scales='free_y')+
+                         theme(legend.position='none',axis.title.x=element_blank())
+                       +PaperBarTheme+ylab('Value'))
+RecentStatusBoxPlot
+dev.off()
+
+# ggplot(data=subset(AllMonte,Metric=="F/M (CC)" & Species=='Black Rockfish'),aes((Year),Value))+geom_smooth()
+
+save(file=paste(Assessment,'/AllMonte.rdata',sep=''),AllMonte)
+save(RecentStatusPlot,RecentStatusBoxPlot,FMCCSumPlot,FMLBSPRSumPlot,SPRSumPlot,CPUESumPlot,PercDevPlot,ReferencePlot,CPUETrend,SPRTrend,CCFvMTrendPlot,CPUEPlot,SPRPlot,CCFvMPlot,LBSPRFvMPlot,file=paste(Assessment,'/MonteCarlo Plots.rdata',sep=''))
 

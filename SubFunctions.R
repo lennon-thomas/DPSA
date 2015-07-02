@@ -56,7 +56,7 @@ ApplyLifeHistoryError<- function()
 #   {
     NewFish<- Fish
     
-    NewFish$vbk<- rlnorm(1,log(Fish$vbk),Fish$LengthError)
+    NewFish$vbk<- Fish$vbk*rlnorm(1,0,Fish$LengthError)
     
     NewFish$MvK<- runif(1,NewFish$MinMvK,NewFish$MaxMvK)
     
@@ -64,7 +64,7 @@ ApplyLifeHistoryError<- function()
     
 #     NewFish$M<-rlnorm(1,log(Fish$M),(Fish$MortalityError))
     
-    NewFish$Linf<- rlnorm(1,log(Fish$Linf),Fish$LengthError)
+    NewFish$Linf<- Fish$Linf*rlnorm(1,0,Fish$LengthError)
     
     NewFish$LengthMatRatio<- runif(1,NewFish$MinLengthMatRatio,NewFish$MaxLengthMatRatio)
 
@@ -352,7 +352,8 @@ AgeAtLength<- function(Lengths,Fish,Error)
   AgeSD<- Error*(1+Fish$VBErrorSlope*Lengths/Fish$Linf)
   #   RawAges<- (log(1-(Lengths)/Fish$Linf)/-Fish$vbk)+Fish$t0
   RawAges<- (log(1-pmin(Lengths,Fish$Linf*.99)/Fish$Linf)/-Fish$vbk)+Fish$t0
-  AgeWithError<- RawAges*rlnorm(length(Lengths),mean=0,sd=AgeSD)
+#   AgeWithError<- RawAges*rlnorm(length(Lengths),mean=0,sd=AgeSD)
+  AgeWithError<- pmax(1,RawAges+rnorm(length(Lengths),mean=0,sd=AgeSD))
   
   return(AgeWithError)
 }

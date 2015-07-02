@@ -118,7 +118,6 @@ RunLBSPRAssess <- function(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr"
     Unfished <- modoutput[(NLBins+2+NLBins+NLBins):(NLBins+NLBins+NLBins+NLBins+1)] 
     ObjFunVal <- modoutput[length(modoutput)-1]
     Grad <- modoutput[length(modoutput)]
-    browser()
     # Read in Correlation
     # Borrowed from R2admb package and slightly modified
     AllStd <- read.table(paste0(ADMBRead, "/", ExName, ".std"), skip=1)

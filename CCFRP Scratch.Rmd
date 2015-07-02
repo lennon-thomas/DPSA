@@ -1,0 +1,35 @@
+---
+title: "CCFRP Scratch"
+author: "Dan Ovando"
+date: "June 26, 2015"
+output: pdf_document
+---
+
+# Scraps
+* time-step of the assessment (in this case year), we first fit the regression from the mode of the logged age distribution from the MPA to the age equal to $A_{p}+R_{y}$, where *A~p~* is the peak age and *R~y~* is the number of years that the MPA has been in place in that year *y*. This step attempts to ensure that the catch curve inside the MPA is fit only to the age classes that have been within the MPA for their entire selected-for lives. Predicted log age frequencies are produced by this model are then used as weights for a second regression run on the same data points, per Smith et al. [-@Smith2012]. The negative slope of this second weighted regression is the catch curve derived estimate of *M*. Through the course of this analysis we noticed a tendency for the estimates of catch curve *M* to be much higher than commonly used values of *M* for our focal species. This may be due to a variety of factors, including spillover of fishing mortality into the MPA, strong recruitment pulses that have not worked through the age classes yet, or the presence of dome-shaped selectivity in the CCFRP data. Given these factors, in order to reduce the dependence of our estimate of *F/M* on the catch for a given run of the catch curve we estimate weighted natural mortality *M~w~* through
+
+Lastly, in order to reduce variation we calculate a mean of these *Y* estimates of M~y,w~, weighted by the sample size and year, so that more recent years with higher data play a greater role in our final estimate of mean natural mortality, $\bar{M}$. 
+
+
+This study provides a case study in the real-world use of DLAs, providing a window into the status of these stocks and a starting point for a discussion on the appropriate use of DLAs.  
+
+*CatchCurve* derived estimates of *F/M* were estimated to be at or above their target reference point only in copper and gopher rockfish and lingcod, with blue, black, and olive rockfish estimated to be potentially close to their target reference point though with stronger evidence for overfishing. *LBSPR* derived estimates of *F/M* suggest overfishing for nearly species except copper rockfish and lingcod and with the exception of yellowtail rockfish estimated higher values of *F/M* than *CatchCurve*. Similarly, *LBSPR* estimated low levels of SPR for all species except gopher rockfish. These *CatchCurve* and *LBSPR* findings stand in stark contrast to the calculated  CPUE ratios, which were at or above the target reference point of 0.4 across all species. 
+
+*
+
+Strike a balance between the inherent uncertainty and risks of using DLAs with the benefits they can provide in guiding managmenet. 
+
+The challenges in the real use of DLAs reflect the need for focusing on the institutions to interpret assessment results and manage their use
+
+Simulation tested against real outcomes as these programs evolve 
+
+Strong deviations in the patterns of our observed density ratios with the theoretical density ratios reported in Babcock and McGilliard
+
+CCFRP as an example of the kinds of data we might expect to collect around the world
+
+Programs like this involve stakeholders and are more realistic than many other kinds of data
+
+We need to think through what it will take, if anything to get fishery management level data out of these kinds of programs. If we can't do it here, where can we do it?
+
+
+Studies such as these can open the door of scientific assessment for fisheries around that world that a may not be able to collect catch data, and provide an avenue for augmenting assessments beyond sole reliance on catch statistics. 
