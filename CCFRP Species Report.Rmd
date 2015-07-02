@@ -1,0 +1,30 @@
+---
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 5
+    fig_width: 5
+  html_document:
+    fig_align: center
+    fig_caption: yes
+    fig_height: 5
+    fig_width: 5
+  word_document:
+    fig_caption: yes
+    fig_height: 5
+    fig_width: 5
+---
+
+# `r Species`
+
+![Summary of `r Species`](`r FigName`)
+
+
+for (s in seq_len(length(Species)))
+{
+  Fish<- Species[s]
+# Assessment<- '4.3'
+FigName<- paste(Assessment,'/All/',Fish,'/Figures/Assessment Summary.pdf',sep='')
+
+out=c(out,knit_child('CCFRP Species Report.Rmd'))
+}

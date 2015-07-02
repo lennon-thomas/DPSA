@@ -75,6 +75,10 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   #ifndef NO_AD_INITIALIZE
     PredLenComp.initialize();
   #endif
+  PredUnfishedComp.allocate(1,NLenMids,"PredUnfishedComp");
+  #ifndef NO_AD_INITIALIZE
+    PredUnfishedComp.initialize();
+  #endif
   Vul.allocate(1,NLenMids+1,"Vul");
   #ifndef NO_AD_INITIALIZE
     Vul.initialize();
@@ -230,6 +234,8 @@ void model_parameters::userfunction(void)
   EP0 = sum(EP0_gtg);
   EPf = sum(EPf_gtg);
   SPR =  EPf/EP0;
+  PredUnfishedComp = colsum(UnfishedMatrix);
+  PredUnfishedComp = PredUnfishedComp/sum(PredUnfishedComp);
   PredLenComp = colsum(FishedMatrix);
   PredLenComp =  elem_prod(PredLenComp,  1.0/(1+mfexp(-log(19)*(LenMids-SL50)/Delta)));
   PredLenComp = PredLenComp/sum(PredLenComp);
@@ -250,6 +256,7 @@ void model_parameters::report()
  report << PredLenComp << endl; // model fit
  report << ObsLength << endl; // original length data
  report << LenMids << endl; // length bins
+ report << PredUnfishedComp << endl; // Unfished length composition
  report << obj_fun << endl; // likelihood obj_fun
  report << objective_function_value::pobjfun->gmax; // maximum gradient value
 }

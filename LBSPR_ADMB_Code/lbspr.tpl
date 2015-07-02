@@ -44,6 +44,7 @@ DATA_SECTION
   vector DiffLinfs(1,NGTG);
   vector RecProbs(1,NGTG);
   vector PredLenComp(1,NLenMids);
+  vector PredUnfishedComp(1,NLenMids);
   vector Vul(1,NLenMids+1);
   vector MkL(1,NLenMids+1);
   vector FkL(1,NLenMids+1);
@@ -92,7 +93,6 @@ PRELIMINARY_CALCS_SECTION
  RecProbs = 1/(sqrt(2*pi*SDLinf*SDLinf)) * mfexp(-(elem_prod((DiffLinfs-Linf),(DiffLinfs-Linf)))/(2*SDLinf*SDLinf));
  RecProbs = RecProbs/sum(RecProbs);
  
- cout << "damnit" << endl;
 
 
 PROCEDURE_SECTION
@@ -147,6 +147,10 @@ PROCEDURE_SECTION
   EPf = sum(EPf_gtg);
   SPR =  EPf/EP0;
 
+  PredUnfishedComp = colsum(UnfishedMatrix);
+  PredUnfishedComp = PredUnfishedComp/sum(PredUnfishedComp);
+
+
   PredLenComp = colsum(FishedMatrix);
   PredLenComp =  elem_prod(PredLenComp,  1.0/(1+mfexp(-log(19)*(LenMids-SL50)/Delta)));
   PredLenComp = PredLenComp/sum(PredLenComp);
@@ -160,6 +164,7 @@ REPORT_SECTION
  report << PredLenComp << endl; // model fit
  report << ObsLength << endl; // original length data
  report << LenMids << endl; // length bins
+ report << PredUnfishedComp << endl; // Unfished length composition
  report << obj_fun << endl; // likelihood obj_fun
  report << objective_function_value::pobjfun->gmax; // maximum gradient value
  

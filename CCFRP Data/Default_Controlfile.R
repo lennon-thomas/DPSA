@@ -14,6 +14,9 @@ Fish$vbk<- NA
 
 Fish$LengthError<- DefaultSD
 
+Fish$AgeSD<- 1
+
+
 Fish$Linf<- NA #ish, 120mm SL
 
 Fish$t0<- NA
