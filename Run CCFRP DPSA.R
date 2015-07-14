@@ -28,7 +28,7 @@ source("SubFunctions.R") #Pull in helper functions for assessment modules
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment <- '4.4 On The Table'
+Assessment <- '5.0 On The Table'
 
 dir.create(Assessment)
 
@@ -44,7 +44,7 @@ FontColor <- 'Black'
 
 PlotFontSize <- 11
 
-RunAssessments <- FALSE 
+RunAssessments <- TRUE 
 
 NumberOfSpecies <- 5
 
@@ -66,7 +66,7 @@ FishedColor <- "#d95f02"
 
 ### Pull in Assessment Data ###
 
-GFD <- read.csv('CCFRP Data/For_Jono_CCFRPdata_April2014.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
+GFD <- read.csv('CCFRP Data/CorrectCCFRP_07_14.csv',stringsAsFactors=F) #Read GroundFishData (GFD)
 
 GFD <- subset(GFD,is.na(Year)==F)
 
@@ -75,7 +75,7 @@ Locations <- read.csv('CCFRP Data/CCFRP_2014Data_withGPS.csv')
 Locations$SiteId <- paste(Locations$Area,Locations$Site..MPA..REF,sep='-')
 
 SiteGPS<- Locations %>%
-  group_by(SiteID) %>%
+  group_by(SiteId) %>%
   summarize(MeanLon=mean(Lon.Center.Point,na.rm=T),MeanLat=mean(Lat.Center.Point,na.rm=T))
 
 GFD$SiteId<- paste(GFD$Site,GFD$MPA_or_REF,sep='-')

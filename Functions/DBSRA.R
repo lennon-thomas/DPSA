@@ -843,28 +843,27 @@ DBSRA<- function(CatchDat,DCAC.start.yr,DCAC.end.yr,delta.yr,DBSRA.OFL.yr,FMSYto
   colnames(BioStats)<- c( 'Year','Biomass','LowerQuantile','UpperQuantile')
   colnames(bStats)<- c( 'Year','BvBmsy','LowerQuantile','UpperQuantile')
   
-  
-  pdf(file=paste(FigureFolder,'DBSRA Biomass Boxplots.pdf'))
+  pdf(file=paste(FigureFolder,'DBSRA Biomass Boxplots.pdf',sep=''))
   boxplot(B~Year,data= FlatResults,outline=F)
   title(xlab='Year',ylab='Biomass (mt)')
   dev.off()
   
-  pdf(file=paste(FigureFolder,'DBSRA BvBmsy Boxplots.pdf'))
+  pdf(file=paste(FigureFolder,'DBSRA BvBmsy Boxplots.pdf',sep = ''))
   boxplot(BvBmsy~Year,data= FlatResults, outline=F)
   title(xlab='Year',ylab='B/Bmsy')
   dev.off()
   
-  pdf(file=paste(FigureFolder,'DBSRA OFL Boxplots.pdf'))
+  pdf(file=paste(FigureFolder,'DBSRA OFL Boxplots.pdf', sep = ''))
   boxplot(OFL~Year,data= FlatResults, outline=F)
   title(xlab='Year',ylab='OFL (mt)')
   dev.off()
   
-  pdf(file=paste(FigureFolder,'DBSRA CatchvOFL Boxplots.pdf'))
+  pdf(file=paste(FigureFolder,'DBSRA CatchvOFL Boxplots.pdf', sep = ''))
   boxplot((Catch/OFL)~Year,data= FlatResults, outline=F)
   title(xlab='Year',ylab='Catch/OFL')
   dev.off()
   
-  pdf(file=paste(FigureFolder,'DBSRA Parameter Posteriors.pdf'))
+  pdf(file=paste(FigureFolder,'DBSRA Parameter Posteriors.pdf', sep = ''))
   par(mfrow=c(4,2))
   hist(FlatResults$M.vec,xlab='M',main=NULL)
   hist(FlatResults$FMSYtoM.vec,xlab='FMSYtoM',main=NULL)
@@ -879,7 +878,7 @@ DBSRA<- function(CatchDat,DCAC.start.yr,DCAC.end.yr,delta.yr,DBSRA.OFL.yr,FMSYto
   PlotColors<- heat.colors(4,alpha=0.6)
   
   
-  pdf(file=paste(FigureFolder,'DBSRA Line Plots.pdf'))
+  pdf(file=paste(FigureFolder,'DBSRA Line Plots.pdf', sep = ''))
   par(mfrow=c(3,1))
   plot(OFLStats$OFL~OFLStats$Year,type='l',bty='n',xlab='Year',ylab='OFL (mt)')
   polygon(x=c(OFLStats$Year,rev(OFLStats$Year)),y=c(OFLStats$UpperQuantile,rev(OFLStats$LowerQuantile)),col= PlotColors[1],border=F)

@@ -138,6 +138,7 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
       LenFreq <- LenHist$counts/sum(LenHist$counts,na.rm=T)
       LenMids <- LenHist$mids 
       ADMBDir <- paste(WD,"/LBSPR_ADMB_Code",sep='')
+      
       runMod <- RunLBSPRAssess(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr", MaxCount=10, ADMBRead=NULL)
       
       
@@ -269,19 +270,22 @@ LBSPR<-function(LengthDat,EstimateM,Iterations,BootStrap,LifeError,LengthBins,Re
     {
       
       pdf(file=paste(FigureFolder,' LBSPR SPR Boxplots.pdf',sep=''))
-      print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot()
-            +xlab('Year')+ylab('SPR'))
+      print(ggplot(data=MCOutput,aes(factor(Year),Value,fill=Samples))+geom_boxplot() +
+            scale_fill_gradient(low = 'red', high = 'green')
+            + xlab('Year')+ylab('SPR'))
       dev.off()
       
       MCDetails<- join(MCDetails,SampleSize,by='Year')
       pdf(file=paste(FigureFolder,' LBSPR FvM Boxplots.pdf',sep=''))
-      print(ggplot(data=MCDetails,aes(factor(Year),FvM),fill=Samples)+geom_boxplot(varwidth=F)
+      print(ggplot(data=MCDetails,aes(factor(Year),FvM,fill=Samples))+geom_boxplot(varwidth=F) + 
+              scale_fill_gradient(low = 'red', high = 'green')
             +xlab('Year')+ylab('F/M'))  
       dev.off()
-      
-      pdf(file=paste(FigureFolder,' LBSPR F Boxplots.pdf',sep=''))
-      print(ggplot(data=MCDetails,aes(factor(Year),F),fill=Samples)+geom_boxplot(varwidth=F)
-            +xlab('Year')+ylab('F')+geom_hline(yintercept=Fish$M,linetype='longdash'))  
+
+            pdf(file=paste(FigureFolder,' LBSPR F Boxplots.pdf',sep=''))
+      print(ggplot(data=MCDetails,aes(factor(Year),F,fill=Samples))+geom_boxplot(varwidth=F) + 
+              scale_fill_gradient(low = 'red', high = 'green') +
+            xlab('Year')+ylab('F')+geom_hline(yintercept=Fish$M,linetype='longdash'))  
       dev.off()
     }
     if (length(unique(MCOutput$Year))==1)

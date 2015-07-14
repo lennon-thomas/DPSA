@@ -52,6 +52,7 @@
 #' 
 
 RunLBSPRAssess <- function(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr", showOutput=FALSE, MaxCount=5, ADMBRead=NULL) {
+
   GetWD <- getwd()
   Count <- 0 
   Output <- NULL 
@@ -61,7 +62,6 @@ RunLBSPRAssess <- function(AssessPars, LenFreq, LenMids, ADMBDir, ExName="lbspr"
   ADMBFile <- file.path(ADMBRead,  ExName)
   DeleteFiles(ADMBDir) # Delete old files if they exist
   WriteDat(AssessPars, LenMids, LenFreq, ADMBRead, ExName) # Write Data file 
-  
   # Determine starting values for optimizer
   Ind <- min(which(cumsum(LenFreq)/max(cumsum(LenFreq)) > 0.4))
   startSL50 <- LenMids[Ind]

@@ -18,7 +18,7 @@ output:
     fig_height: 5
     fig_width: 5
 number_sections: yes
-csl: canadian-journal-of-fisheries-and-aquatic-sciences.csl
+csl: fish-and-fisheries.csl
 bibliography: CCFRP Paper.bib
 toc: yes
 ---
@@ -29,7 +29,7 @@ library(plyr)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-Assessment<- '4.4 On The Table'
+Assessment<- '5.0 On The Table'
 
 Results<- read.csv(paste(Assessment,'Complete Assessment Results.csv',sep='/'))
 
@@ -38,7 +38,6 @@ Plots<- load(paste(Assessment,'MonteCarlo Plots.Rdata',sep='/'))
 load(file=paste(Assessment,'/AllMonte.Rdata',sep=''))
 
 ```
-Hell
 
 # Introduction
 
@@ -95,14 +94,14 @@ kable(FlatTab,caption='Life history parameters used for assessment of CCFRP Data
 
 ## Accounting for MPAs
 
-MPAs can pose a challenge to stock assessment [see @Field2006 for a thorough discussion of this topic]. One of the primary questions is whether the fish inside the MPA should be "on" or "off" the table in our assessment of fishery status. This essentially amounts to a debate on whether the fish in the MPA and fished regions are distinct or continuous populations. Treating them as continuous can give "credit" for the biomass or spawning potential inside the reserve, acitng to elevate our assessment of the health of the total population. Treating them as separate may provide a clearer indication of the rate of fishing mortality in the fished area, but obscure the true health of the population, if the fished and MPA areas are in fact connected through movement or dispersal. 
+MPAs can pose a challenge to stock assessment [see @Field2006 for a thorough discussion of this topic]. One of the primary questions is whether the fish inside the MPA should be "on" or "off" the table in our assessment of fishery status. This essentially amounts to a debate on whether the fish in the MPA and fished regions are distinct or continuous populations. Treating them as continuous can give credit for the biomass or spawning potential inside the reserve, acitng to elevate our assessment of the health of the total population. Treating them as separate may provide a clearer indication of the rate of fishing mortality in the fished area, but obscure the true health of the population, if the fished and MPA areas are in fact connected through movement or dispersal. 
 
-We chose the "on the table" option for this study. This means that we aggregated length data from inside and outside the MPA in order to estimate fishing mortality (*f*) and spawning potential ratios (*SPR*). This means that our estimates of *f* and *SPR* are intended to reflect the aggregate *f* and *SPR* across a population assumed to encompass both the MPA and fished areas. We make this assumption due to the scale and proximity of our study sites. Given that our fished sites are intentionally located in close proximity to the reserve, we do not believe the assumption that the MPAs and fished sites are not connected by adult or larval dispersal to be valid. Therefore, while the MPAs do provide refugia from fishing for a subset of the population, we do not assume that that subset is disconnected from the fished population. 
+We chose the "on the table" option for this study. This means that we aggregated length data from inside and outside the MPA in order to estimate fishing mortality (*f*) and spawning potential ratios (*SPR*).  Our estimates of *f* and *SPR* then reflect the aggregate *f* and *SPR* across a population assumed to encompass both the MPA and fished areas. We make this assumption due to the scale and proximity of our study sites. Given that our fished sites are intentionally located in close proximity to the reserve, we do not believe the assumption that the MPAs and fished sites are not connected by adult or larval dispersal to be valid. Therefore, while the MPAs do provide refugia from fishing for a subset of the population, we do not assume that that subset is disconnected from the fished population. 
 
 
 ## Missing Observations
 
-In order to properly CPUE it is critical to account for fishing events in which no individuals were captured. In order to accomplish this, we first compiled a list of all the species ever seen by CCFRP at a given CCFRP site. For each unique fishing trip at each site, we identified any species that had ever been recorded at that site but was not observed on that fishing trip. We then entered a new data point recording no-observation of that given species over the duration of time (effort) fished on that trip. 
+In order to properly estimate CPUE it is critical to account for fishing events in which no individuals were captured. In order to accomplish this, we first compiled a list of all the species ever seen by CCFRP at a given CCFRP site. For each unique fishing trip at each site, we identified any species that had ever been recorded at that site but was not observed on that fishing trip. We then entered a new data point recording no-observation of that given species over the duration of time (effort) fished on that trip. 
 
 ## Incorporating Uncertainty
 
@@ -158,7 +157,7 @@ We use a combination of methods described in Kay & Wilson [-@Kay2012] and Smith 
 
 We estimate *M* as the mean of the life history invariant value of *M* derived from the values in Prince et al. [-@Prince2014] and the *M* estimated per Hoenig [-@Hoenig1983] and recommended by Then et al. [-@Then2014]:
 
-$$M=((\frac{M}{k}(k)+4.899*MaxAge^{-.916})/2$$
+$$M=(\frac{M}{k}(k)+{4.899}MaxAge^{-.916})/2$$
 
 Using this estimate of *M*, we estimate total mortality *Z* from a catch-curve fit to the CCFRP data. A linear regression comprised of a slope and an intercept is fit from the mode to the last observed age of the log age frequency distribution in a given year. The predicted log age frequencies from this regression are then used as weights for a second regression run on the same data points, per Smith et al. [-@Smith2012]. This procedure serves to prevent excessive weight being placed on rare observations of very old individuals. The negative slope of this second weighted regression is the catch curve derived estimate of *Z* in the year *y*. With *Z~y~*, we then estimate *F~y~* as $Z_{y}-M$, and subsequently $F_{y}/M$. 
 
@@ -180,19 +179,19 @@ kable((LBSPRTable),caption='Chosen LBSPR model parameters. Quantiles refer to th
 
 # Results
 
-The CCFRP data enabled us to produce estimates of *F/M*, *SPR* and *CPUEratios* over time for nearly all of the 11 most commonly encountered species. *CatchCurve* and *LBSPR* both failed to run for brown rockfish and cabezon.  Examining the most recent assessment year (2014) we see a diversity of results both across species and assessments (results presented are the mean of 2014 and the prior two years of values; Fig.2). The bulk of the CPUE ratio estimates fall between 0.5 and 1. Brown rockfish had the lowest estimated CPUE ratio, while species such as black and gopher rockfish had the clearest concentration around higher values. Estimates of CPUE ratio in 2014 for cabezon were highly uncertain. The CPUE ratios show relatively little variation in response to the bootstrapping of the data, with the exception of cabezon. 
+The CCFRP data enabled us to produce estimates of *F/M*, *SPR* and *CPUEratios* over time for nearly all of the 11 most commonly encountered species. *CatchCurve* and *LBSPR* both failed to run for brown rockfish and cabezon.
 
 ## 2014 Estimates
 
-Canary and yellowtail rockfish had the highest estimates of *F/M* produced by *CatchCurve*, and copper rockfish the lowest. *CatchCurve* found *F/M* values above 1 for the majority of species.  *LBSPR* produced similar estimates of *F/M* to *CatchCurve*, though often accentuating high and low values, with a tendency to estimate higher *F/M* values than *CatchCurve*. Kelp rockfish had one of the largest discrepancies in the two *F/M* estimates, with *LBSPR* predicting values on average twice greater than *CatchCurve*. The estimated distributions around *F/M* were relatively tight for both methods, though *LBSPR*'s *F/M* values showed greater variability. 
+Examining the most recent assessment year (2014) we see a diversity of results both across species and assessments (results presented are the mean of 2014 and the prior two years of values; Fig.2). The bulk of the CPUE ratio estimates fall between 0.5 and 1. Brown rockfish had the lowest estimated CPUE ratio, while species such as black and gopher rockfish had the clearest concentration around higher values. Estimates of CPUE ratio in 2014 for cabezon were highly uncertain. The CPUE ratios show relatively little variation in response to the bootstrapping of the data, with the exception of cabezon. 
 
+Canary and yellowtail rockfish had the highest estimates of *F/M* produced by *CatchCurve*, and copper rockfish the lowest. *CatchCurve* found *F/M* values above 1 for the majority of species.  *LBSPR* produced similar estimates of *F/M* to *CatchCurve*, though often accentuating high and low values, with a tendency to estimate higher *F/M* values than *CatchCurve*. Kelp rockfish had one of the largest discrepancies in the two *F/M* estimates, with *LBSPR* predicting values on average twice greater than *CatchCurve*. The estimated distributions around *F/M* were relatively tight for both methods, though *LBSPR*'s *F/M* values showed greater variability. 
 ```{r,echo=F,message=FALSE}
 
 MeanSPR<- mean(AllMonte$SmoothValue[AllMonte$Year==2014 & AllMonte$Metric=='SPR'],na.rm=T)
 
 ```
-
-*LBSPR* also produced a diversity of estimates of *SPR*, copper rockfish being the highest at a median value above 0.75, and canary rockfish the lowest with a median value near 0.05. Many of interquartiles of the the predicted *SPR* distributions were relatively narrow, but the broader distributions for some predictions, such as gopher rockfish and lingcod, were quite wide. The mean *SPR* across species was `r round(MeanSPR,2)`.  
+*LBSPR* also produced a diversity of estimates of *SPR*, copper rockfish being the highest at a median value near 0.75, and canary rockfish the lowest with a median value near 0.05. Many of interquartiles of the the predicted *SPR* distributions were relatively narrow, but the broader distributions for some predictions, such as gopher rockfish and lingcod, were quite wide. The mean *SPR* across species was `r round(MeanSPR,2)`.  
 
 ```{r,echo=F,message=FALSE,warning=FALSE,fig.cap='Distributions of outputs from DLAs in 2014. Results are presented as the smoothed mean of 2014 and the prior two lags'}
 RecentStatusBoxPlot
@@ -200,7 +199,7 @@ RecentStatusBoxPlot
 
 ## Trends
 
-We can consider trends in assessment outputs as well as indivudal year estimates. Species such as black, blue,brown,gopher, kelp, and olive rockfish had initially high values of CPUE ratio, often near 1, and have since declined (Fig.3). This is consistent with predicted trends in CPUE or density ratios, in which the fished and unfished areas begin with similar abundance levels (CPUE ratios of 1), and then show a decline in ratios as the abundance inside the MPA starts to increase relative to the fished area [@Babcock2011; @McGilliard2011]. Other species such as copper and yellowtail rockfish, along with lingcod, have shown increases in CPUE ratios over time, from starting points below 1. 
+We can consider trends in assessment outputs as well as indivudal year estimates. Species such as black, blue,brown,gopher, canary, and olive rockfish had initially high values of CPUE ratio (near or above 1), and have since declined (Fig.3). This is consistent with predicted trends in CPUE or density ratios, in which the fished and unfished areas begin with similar abundance levels (CPUE ratios of 1), and then show a decline in ratios as the abundance inside the MPA starts to increase relative to the fished area [@Babcock2011; @McGilliard2011]. Other species such as copper and yellowtail rockfish, along with lingcod, have shown increases in CPUE ratios over time, from starting points below 1. 
 
 We see less clear mixed signals in examining the *F/M* trends estimated by the DLAs (Fig.4-5). Most of the *F/M* values estimated by *CatchCurve* did not show particularly clear trends, though there is some indication of a decline in *F/M* values in recent years in species such as blue, gopher, and olive rockfish. *CatchCurve* estimates and increasing trend in *F/M* for canary and yellowtail rockfish over time. The *LBSPR* derived estimated of *F/M* showed broadly similar trends to those of *CatchCUrve*, though with greater definition in trends. In general across both methods we do not see a clear signal of declining *F/M* values in the years since the implementation of the reserves. Little trend is evident in the predicted *SPR* values, with the exception of gopher rockfish (increasing *SPR*) and yellowtail rockfish (decreasing *SPR*; Fig.6). 
 
@@ -224,9 +223,9 @@ SPRSumPlot
 
 ## Reference Points
 
-While the raw values, rankings, and trends in the assessment values are useful in and of themselves, the primary advantage of DLAs is their ability to provide reference points for guiding management. All of the DLAs evaluated here have recommended reference values of 0.4 for *CPUERatio* [following @McGilliard2011] and *SPR*, and 1 for *F/M*. Scaling the assessment outputs relative to reference points allows us to consider the meaning of the estimates in a more meaningful way. To summarize these results, we have scaled each of the DLA outputs relative to its respective reference point (Fig.7). A value of 0% deviation indicates that the DLA estimate is at its reference point. The sign of the deviation reflects a beneficial or detrimental deviation from the reference point. So, in the case of *F/M*, a positive deviation from target reflects an *F/M* value below the reference point, while in the case of *SPR* a positive value reflects an *SPR* above the reference point. 
+While the raw values, rankings, and trends in the assessment values are useful in and of themselves, the primary advantage of DLAs is their ability to provide reference points for guiding management. All of the DLAs evaluated here have recommended reference values; 0.4 for *CPUERatio* [following @McGilliard2011] and *SPR*, and 1 for *F/M*. Scaling the assessment outputs relative to reference points allows us to consider the meaning of the estimates in a more meaningful way. To summarize these results, we have scaled each of the DLA outputs relative to its respective reference point (Fig.7). A value of 0% deviation indicates that the DLA estimate is at its reference point. The sign of the deviation reflects a beneficial or detrimental deviation from the reference point. So, in the case of *F/M*, a positive deviation from target reflects an *F/M* value below the reference point, while in the case of *SPR* a positive value reflects an *SPR* above the reference point. 
 
-Our results show a strong contrast between *CPUERatio* and *CatchCurve*/*LBSPR*. The distributions of CPUE ratios were significantly above the reference value across all species, often by as much as 100%. However, *F/M* and *SPR* are estimated to be frequently below their reference values. Copper rockfish has the most favorable assessment results, with a CPUE ratio at the target and positive assessments of *F/M* and *SPR* values. The DLA estimated values for Gopher rockfisn and lingcod also reflect positively on the state of the population through CPUE ratios, *F/M*, and *SPR*. Black, blue, kelp, and olive rockfish all exhibit similar trends of high CPUE ratios, but estimated excessive *F/M* values and low SPRs. Canary and yellowtail rockfish showed the most stark contrast, with high CPUE ratios, value of *F/M* up to and over 200% above the target value, and *SPR* 200% below the target. These results show both in some cases conflicting assessment outcomes across assessments within species, and across species. 
+Our results show a strong contrast between *CPUERatio* and *CatchCurve*/*LBSPR*. The distributions of CPUE ratios were at or above the reference value across all species. However, *F/M* and *SPR* are estimated to be frequently below their reference values. Copper rockfish has the most favorable assessment results, with a CPUE ratio at the target and positive assessments of *F/M* and *SPR* values. The DLA estimated values for Gopher rockfisn and lingcod also reflect positively on the state of the population through CPUE ratios, *F/M*, and *SPR*. Black, blue, kelp, and olive rockfish all exhibit similar trends of high CPUE ratios, but estimated excessive *F/M* values and low SPRs. Canary and yellowtail rockfish showed the most stark contrast, with high CPUE ratios, value of *F/M* up to and over 200% above the target value, and *SPR* 200% below the target. These results show both in some cases conflicting assessment outcomes across assessments within species, and across species. 
 
 ```{r,echo=F,message=FALSE,warning=FALSE,fig.cap='DLA outputs scaled against reference points. 0.4 was used as a reference point for CPUERatio and SPR, 1 for F/M. Colors reflect the mean deviation from the target'}
 PercDevPlot
@@ -260,6 +259,94 @@ kable(Comp,digits=2,caption='Comparison of median 2014 DLAs estimates and most r
 
 # Discussion
 
+```{r,echo = F, message=F, warning=F}
+
+McCR<- function(CR,slope,intercept)
+{
+  DeltaCR<- slope*(CR-intercept)
+  return(DeltaCR)
+}
+
+BabCR<- function(CR,MinE,MaxE,MinCR,TargetCR)
+{
+  CRLine<- (lm(c(MaxE,MinE) ~ c(TargetCR,MinCR)))
+  
+  RE<- CRLine$coefficients[2] * CR + CRLine$coefficients[1]
+  
+  if (CR>=TargetCR){RE<- MaxE}
+  
+  if (CR<=MinCR){RE<- MinE}
+  
+  return(RE)
+}
+
+BabFR<- function(FvM,MinE,MaxE,MaxF,TargetF)
+{
+  FRLine<- (lm(c(MaxE,MinE) ~ c(TargetF,MaxF)))
+  
+  RE<- FRLine$coefficients[2] * FvM + FRLine$coefficients[1]
+  
+  if (FvM<= TargetF){RE<- MaxE}
+  
+  if (FvM>= MaxF){RE<- MinE}
+  
+  return(RE)
+}
+
+spr_cr<- function(spr,spr_target,phi1,phi2,max_delta)
+{
+  delta<- phi1*(spr/spr_target-1)^3+phi2*(spr/spr_target-1)
+  
+  delta[abs(delta)>=max_delta]<- (max_delta*sign(delta))[abs(delta)>=max_delta]
+  
+  return(delta)
+}
+
+gopher_cpue_ratio<- (subset(Results,Species=='Gopher Rockfish' & Year==max(Year) & Method==('CPUERatio')))$Value
+
+gopher_spr<- (subset(Results,Species=='Gopher Rockfish' & Year==max(Year) & Metric==('SPR')))$Value
+
+gopher_ccf<- (subset(Results,Species=='Gopher Rockfish' & Year==max(Year) & Metric==('FvM') & Method=='CatchCurve'))$Value
+
+gopher_lbsprf<- (subset(Results,Species=='Gopher Rockfish' & Year==max(Year) & Metric==('FvM') & Method=='LBSPR'))$Value
+
+gopher<- list()
+
+gopher$mccr_effortmod<- McCR(gopher_cpue_ratio,slope=1.05,intercept=0.42)
+
+gopher$babcockcr_effortmod<-  BabCR(gopher_cpue_ratio,MinE = 0,MaxE = 1,MinCR = 0.2, TargetCR = 0.6)
+
+gopher$cc_effortmod<-  BabFR(gopher_ccf,MaxE = 1,MinE = 0,MaxF = 2,TargetF = 1)
+
+gopher$lbspr_f_effortmod<-  BabFR(gopher_lbsprf,MaxE = 1,MinE = 0,MaxF = 2,TargetF = 1)
+
+gopher$lbspr_spr_effortmod<-  spr_cr(spr = gopher_spr, spr_target = 0.4, phi1 = 0.15, phi2 = 0.05, max_delta = 0.3)
+
+
+canary<- list()
+
+canary$cpue_ratio<- (subset(Results,Species=='Canary Rockfish' & Year==max(Year) & Method==('CPUERatio')))$Value
+
+canary$spr<- (subset(Results,Species=='Canary Rockfish' & Year==max(Year) & Metric==('SPR')))$Value
+
+canary$ccf<- (subset(Results,Species=='Canary Rockfish' & Year==max(Year) & Metric==('FvM') & Method=='CatchCurve'))$Value
+
+canary$lbsprf<- (subset(Results,Species=='Canary Rockfish' & Year==max(Year) & Metric==('FvM') & Method=='LBSPR'))$Value
+
+
+canary$mccr_effortmod<- McCR(canary$cpue_ratio,slope=1.05,intercept=0.42)
+
+canary$babcockcr_effortmod<-  BabCR(canary$cpue_ratio,MinE = 0,MaxE = 1,MinCR = 0.2, TargetCR = 0.6)
+
+canary$cc_effortmod<-  BabFR(canary$ccf,MaxE = 1,MinE = 0,MaxF = 2,TargetF = 1)
+
+canary$lbspr_f_effortmod<-  BabFR(canary$lbsprf,MaxE = 1,MinE = 0,MaxF = 2,TargetF = 1)
+
+canary$lbspr_spr_effortmod<-  spr_cr(spr = canary$spr, spr_target = 0.4, phi1 = 0.15, phi2 = 0.05, max_delta = 0.3)
+
+
+```
+
 There is a clear need for the development of practical and useful DLAs as we seek to spread the tools of fisheries management outside the realm of data-rich fisheries. Many studies have risen to this challenge, providing strong evidence that DLAs can be effective tools for managing fisheries [e.g. @Geromont2015;@Thorson2014;@Carruthers2014;@Dick2011;@Hordyk2014]. However, the vast majority of these studies either rely on complete (or near complete) catch histories, or use DLAs as comparisons to simulated data or formal stock assessments. While this is a necessary step in proving the concept of DLAs, we know of few studies that have relied solely on length or MPA based data to provide stand-alone DLA derived estimates of stock status. If DLAs are only to be used in the company of complete catch histories,simulated knowledge, or data-rich assessments, then they are in fact of little value for many of the world's fisheries. 
 
 The species assessed in this report are largely managed and assessed by a mixture of US Federal and State agencies, using additional data and assessment methods. We do not present these DLA derived results as the basis for management recommendations, though consideration of the ways in which these data and methods could be incorporated into the formal assessment process would be worthwhile. However, the broader case for these types of DLAs rests on their ability to act as stand-alone tools for fishery assessment. How then might a fishery manager utilize the assessment outputs produced by these DLAs? 
@@ -272,23 +359,31 @@ Turning to the *CatchCurve* and *LBSPR* results, our results indicate overfishin
 
 Considering the caveats in the use of the CPUE and length data collected by CCFRP data for assessment, one solution for our hypothetical manager may be to ignore the DLA outputs as too uncertain and unreliable. We feel that this is not a constructive course of action. Programs such as CCFRP represent the kind of citizen-science that is likely to possible in many of the data-limited fisheries of the world. Angler surveys or dive transects are likely to be much more feasible than trawls or ROVs. In addition, many communities around the world are taking note of the development of DLAs, and are seeking to implement them using length or MPA based data. As such, it is imperative that we consider how best to make use of this information. 
 
-The primary purpose of fishery assessment is to guide the setting of fishing mortality rates through whatever means are available. It is beyond the scope of this report to provide even hypothetical management recommendations for each of the species surveyed. Let us consider two contrasting examples though.Looking at gopher rockfish, we see generally consistent positive signals across the DLAs, with the exception of *LBSPR* derived *F/M*. In addition, thinking through this species we have more reason to have confidence in our results. Gopher rockfish are known to be inhabit relatively shallower waters throughout their life cycle, reducing the risk of dome-shaped selectivity in the data. Examining the raw length frequency distributions, we observe a reasonable proportion of individuals near *L~inf~* (see SOM), providing further evidence of the representativeness of the CCFRP samples for this species. Taken together, we might make a reasonable decision as a manager that current, or potentially even increased levels, of fishing mortality are likely to be sustainable. 
+## Application to Management
 
-Turning to canary rockfish, we see conflicting and worrying values. While the CPUE ratio is high, the estimated *F/M* and *SPR* are far beyond their reference points. A manager faced with this result might be tempted to identify canary rockfish as subject to overfishing. Looking at the length frequencies (see SOM), we see that nearly all of our observed individuals are well below both L~mat50~ and *L~inf~*. One explanation for this is in fact overfishing, and the absence of these larger individuals is the driver behind the high *F/M* and low *SPR* values predicted by the DLAs. Alternatively though, this may be a result of an ontogenetic shift. We know that canary rockfish move to greater depths as they age, beyond the depths sampled by CCFRP. As a result, while we are only observing the smaller individuals, a population of larger individuals may exist outside of the range of the CCFRP sampling. With this knowledge alone, a manager might be less inclined to believe the DLA assessments for canary rockfish. In fact, we have good reason to believe that the DLA assessment outputs for canary (and likely yellowtail) rockfish included are wrong. A recent stock assessment [@Thorson] found  canary rockfish populations along the California coast to be rebuilt and experiencing very low levels of fishing mortality. While our hypothetical manager would not have this information, it provides justification for interpreting the DLA assessments for canary rockfish with caution given the potential for ontogenetic shifts. 
+The primary purpose of fishery assessment is to guide the setting of fishing mortality rates through whatever means are available. It is beyond the scope of this report to provide even hypothetical management recommendations for each of the species surveyed. Let us consider two contrasting examples though.Looking at gopher rockfish, we see generally consistent positive signals across the DLAs, with the exception of *LBSPR* derived *F/M*. In addition, thinking through this species we have more reason to have confidence in our results. Gopher rockfish are known to be inhabit relatively shallower waters throughout their life cycle, reducing the risk of dome-shaped selectivity in the data. Examining the raw length frequency distributions, we observe a reasonable proportion of individuals near *L~inf~* (see SOM), providing further evidence of the representativeness of the CCFRP samples for this species. Taken together a manager might be willing to use these DLA outputs to guide management of fishing effort. 
+
+Using the DLA outputs for gopher rockfish, the density ratio control rule proposed by McGilliard et al. [-@McGilliard2011], using a slope of 1.05 and an intercept of 0.42,  would recommend a `r 100*round(gopher$mccr_effortmod,2)`% increase in effort. Babcock & MacCall [-@Babcock2011]'s control rule would recommend that effort be scaled to `r 100*round(gopher$babcockcr_effortmod,2)`% of the current effort level. *CatchCurve*'s assessment of mean *F/M* would recommend that effort be set at  `r 100*round(gopher$cc_effortmod,2)`% of current effort, `r 100*round(gopher$lbspr_f_effortmod,2)`% using *LBSPR*'s assessment of *F/M*. Lastly, the cubic polynomial *SPR* control rule proposed by Hordyl et al. [-@Hordyk2014] recommends that effort be increased by a factor of `r round(gopher$lbspr_spr_effortmod,2)`. Taken together, application of control rules to the DLAs outputs for canary rockfish suggest that maintaining current levels of fishing effort is likely to be sustainable. 
+
+We see conflicting and worrying values in examining canary rockfish. While the CPUE ratio is high, the estimated *F/M* and *SPR* are far beyond their reference points. Using the DLA outputs for canary rockfish, the density ratio control rule proposed by McGilliard et al. [-@McGilliard2011] recommends a `r 100*round(canary$mccr_effortmod,2)`% increase in effort (`r 100*round(canary$babcockcr_effortmod,2)`% using Babcock & MacCall [-@Babcock2011]). *CatchCurve*' and *LBSPR*'s assessment of mean *F/M* would recommend that effort be set at  `r 100*round(canary$cc_effortmod,2)`% of current effort. The cubic polynomial *SPR* control rule proposed by Hordyl et al. [-@Hordyk2014] recommends that effort be decreased by a factor of `r round(canary$lbspr_spr_effortmod,2)`. The DLA outputs for canary rockfish then result in starkly different control rule outcomes depending on the metric used, ranging from increases in effort when making decisions based on the CPUE ratio, to shutting the fishery down when considering *F/M*.
+
+A manager faced with this result might be tempted to identify canary rockfish as subject to overfishing. Looking at the length frequencies (see SOM), we see that nearly all of our observed individuals are well below both L~mat50~ and *L~inf~*. One explanation for this is in fact overfishing, and the absence of these larger individuals is the driver behind the high *F/M* and low *SPR* values predicted by the DLAs. Alternatively though, this may be a result of an ontogenetic shift. We know that canary rockfish move to greater depths as they age, beyond the depths sampled by CCFRP. As a result, while we are only observing the smaller individuals, a population of larger individuals may exist outside of the range of the CCFRP sampling. With this knowledge alone, a manager might be less inclined to believe the DLA assessments for canary rockfish. In fact, we have good reason to believe that the DLA assessment outputs for canary (and likely yellowtail) rockfish included are wrong. A recent stock assessment [@Thorson] found  canary rockfish populations along the California coast to be rebuilt and experiencing very low levels of fishing mortality. While our hypothetical manager would not have this information, it provides justification for interpreting the DLA assessments for canary rockfish with caution given the potential for ontogenetic shifts, and potentially leaning more on the CPUE ratios as a management tool. 
+
+## Recommendations
 
 Clearly then caution must be taken by managers seeking to make decisions based the outputs of DLAs. We provide a list of potential considerations based on the results of this study: 
 
-  * *Beware of dome-shaped selectivity*: Length based assessments, and biomass estimates, are highly sensitive to the proportion of larger individuals in the sample. Factors such as ontogenetic shifts can cause the false appearance of severe overfishing. Knowledge of the sampled species life history should be compared to the sampling methods used to consider whether dome-shaped selectivity may skew DLA results. 
-  * *Take caution in early MPA data*: Trends in density or CPUE ratios can help guide management. However, even robust simulations may miss the many complex ways in which MPAs may affect abundances inside and outside of the reserve. In early years especially, initially high CPUE ratio values may reflect commonly low abundances in the fished and unfished areas. Ratios should be observed over time, and the raw densities inside and out compared, to assure that the MPA is serving as an accurate reference. It is especially critical to ensure standardized and consistent sampling methods during this early period.
-  * *Acknowledge uncertainty*: Many DLAs, including those included here, function by making simplifying assumptions based on life history parameters. Erroneous values of for example *L~inf~* can drastically alter the outcomes of methods such as *LBSPR*. Failure to acknowledge the uncertainty in the sampled data themselves can also create a false sense of certainty, for example when an estimate of a high CPUE ratio is based on only a few observations of a rare large individual. We recommend the integrated Monte Carlo/bootstrapping routine presented here as a relatively simple method for exploring the effects of uncertainty on DLA outcomes. Where analytical capacity does not allow this, simply running DLAs with a range of selected life history parameters will be informative.
-  * *Collaborate*: Local knowledge is an valuable tool for assessment. DLA interpretation, and data sampling itself, should be performed in collaboration with those who know the system best, including for example the tourism or fishing community. This will greatly help in the collection of quality data, and in avoiding erroneous conclusions based on faulty DLAs. Where DLA outputs do not match local perceptions, careful analysis should be conducted to consider why. 
-  * *Strengthen Institutions* : Assessment is only one component of the fishery management process. Strong social institutions are needed to make decisions based on assessments, and in turn enforce the actions required by those decisions. Especially in the data-limited world, we should focus not only on the accuracy of assessments, but strengthening the capacity to act on those assessments. 
+* *Beware of dome-shaped selectivity*: Length based assessments, and biomass estimates, are highly sensitive to the proportion of larger individuals in the sample. Factors such as ontogenetic shifts can cause the false appearance of severe overfishing. Knowledge of the sampled species life history should be compared to the sampling methods used to consider whether dome-shaped selectivity may skew DLA results. 
+* *Take caution in early MPA data*: Trends in density or CPUE ratios can help guide management. However, even robust simulations may miss the many complex ways in which MPAs may affect abundances inside and outside of the reserve. In early years especially, initially high CPUE ratio values may reflect commonly low abundances in the fished and unfished areas. Ratios should be observed over time, and the raw densities inside and out compared, to assure that the MPA is serving as an accurate reference. It is especially critical to ensure standardized and consistent sampling methods during this early period.
+* *Acknowledge uncertainty*: Many DLAs, including those included here, function by making simplifying assumptions based on life history parameters. Erroneous values of for example *L~inf~* can drastically alter the outcomes of methods such as *LBSPR*. Failure to acknowledge the uncertainty in the sampled data themselves can also create a false sense of certainty, for example when an estimate of a high CPUE ratio is based on only a few observations of a rare large individual. We recommend the integrated Monte Carlo/bootstrapping routine presented here as a relatively simple method for exploring the effects of uncertainty on DLA outcomes. Where analytical capacity does not allow this, simply running DLAs with a range of selected life history parameters will be informative.
+* *Collaborate*: Local knowledge is an valuable tool for assessment. DLA interpretation, and data sampling itself, should be performed in collaboration with those who know the system best, including for example the tourism or fishing community. This will greatly help in the collection of quality data, and in avoiding erroneous conclusions based on faulty DLAs. Where DLA outputs do not match local perceptions, careful analysis should be conducted to consider why. 
+* *Strengthen Institutions* : Assessment is only one component of the fishery management process. Strong social institutions are needed to make decisions based on assessments, and in turn enforce the actions required by those decisions. Especially in the data-limited world, we should focus not only on the accuracy of assessments, but strengthening the capacity to act on those assessments. 
 
 Simulation testing has provided us with a wealth of DLA tools with great promise for bringing science-based management to data-limited fisheries. The time has now come though to consider how these DLAs should be applied in practice, when managers must make decisions based directly on their outputs. There is no doubt that this poses substantial risk. The fewer data, and the less reliable those data, the less reliable any assessment based on those data will be. At the same time, the simplifying assumptions required of many DLAs can often be violated, leading to potentially highly erroneous estimates. While we cannot change these truths, we can seek to provide guidance to minimize the risks they pose, and in doing so help ensure the best chances of "doing no harm" through application of DLAs. This study provides a demonstration of the process by which we can apply and assess the outcomes of DLAs in real fisheries, and a basis for further research on the ways in which we can help improve the management of data-limited fisheries. 
 
 # Acknowledgements
 
-DO was funded by a contract with The Nature Conservancy. We are grateful to all the researchers, staff, and volunteers of CCFRP for their hard work in collecting these data and consultation in its interpretation.
+DO was funded by a contract with The Nature Conservancy. We are grateful to all the researchers, staff, and volunteers of CCFRP for their hard work in collecting these data and consultation in its interpretation, especially Grant Waltz. 
 
 # Supplementary Tables
 
@@ -320,14 +415,14 @@ for (s  in seq_len(length(Species)))
     
     print(LengthDist)
   }
-
+  
   
 }
 ```
 
 ---
 nocite: | 
-  @Hamel2009, @Key2005, @Cope2013, @Sampson2007, @Key2007
+@Hamel2009, @Key2005, @Cope2013, @Sampson2007, @Key2007
 ...
 
 

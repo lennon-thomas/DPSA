@@ -35,9 +35,9 @@ WriteDat <- function(AssessPars, LengthMids, LenFreq, ADMBDir, ExName="lbspr") {
     
     CheckBy <- NULL
     for (X in 2:length(LengthMids)) {
-      CheckBy[X-1] <-LengthMids[X] - LengthMids[X-1]
+      CheckBy[X-1] <- round(LengthMids[X] - LengthMids[X-1],2)
     }
-    chk <- all(CheckBy == CheckBy[1])
+    chk <- sum(CheckBy) == length(CheckBy)
     if (chk) By <- CheckBy[1]
     if (chk == FALSE ) {
       Error <- "Error - Length classes not equidistant"
