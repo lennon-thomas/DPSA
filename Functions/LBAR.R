@@ -29,25 +29,25 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
   #### Organize Data ####
   ################
   
-  # LengthDat<- LengthData
+  LengthDat<- LengthData
   
-  # LagLength<- 1
+  LagLength<- 1
   
-  # Weight<- 0.2
+  Weight<- 1
   
-  # IncludeMPA<- 0
+  IncludeMPA<- 0
   
-  # Iterations<- 1000
+  Iterations<- 10
   
-  # BootStrap<- 1
+  BootStrap<- 0
   
-  # LifeError<- 1
+  LifeError<- 0
   
-  # ReserveYr <- 2011
+  ReserveYr <- NA
   
-  # OutsideBoundYr <- NA
+  OutsideBoundYr <- NA
   
-  # Lc <- NA
+  Lc <- NA
   
   ManualLc<- Lc
   
@@ -170,7 +170,7 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
           Lc<- round(sum(sizestore*weights)/sum(weights),10) 
         }
         
-        # print(Lc)
+         print(Lc)
         
         #Calculate Llam -- used for bounding.
         
@@ -211,7 +211,7 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
           Outdat <- subset(TempData, MPA == 0 & Year == Years[y] & Length >= Lc & Length > LlamOut)
           LbarOut <- mean(Outdat$Length,na.rm=TRUE)
         }
-        # print(c("In",Lc,LbarIn,LlamIn,"Out",Lc, LbarOut,LlamOut))  
+         print(c("In",Lc,LbarIn,LlamIn,"Out",Lc, LbarOut,LlamOut))  
         
         #################
         #### Analyze Data ####
@@ -282,13 +282,13 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
           # BOUND_Z <-(uniroot(function(z) Bounded.BH(z,939,0.13,400,798,493), c(0.0000001,10)))$root  #M	 
           
           
-          if (M > BOUND_Z) #If the result doesn't seem possible, calculate M from life history invariants
-          {
+          #if (M > BOUND_Z) #If the result doesn't seem possible, calculate M from life history invariants
+          #{
             
-            Flag<- 'Real M greater than Z, using Fish$M estimate'
+           # Flag<- 'Real M greater than Z, using Fish$M estimate'
             M<- Fish$M
             
-          }
+        #  }
           
           
           BOUND_F <-BOUND_Z-M #Fishing mortality
@@ -418,24 +418,24 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
   {
     
     pdf(file=paste(FigureFolder,' LBAR FvM Boxplots.pdf',sep=''))
-    boxplot((MCDetails$FishingMortality/M)~MCDetails$Year,frame=F,xlab='Year',ylab='F/M',notch=T,outline=F,width=SampleSize)
+    boxplot((MCDetails$FishingMortality/M)~MCDetails$Year,frame=F,xlab='Year',ylab='F/M',notch=F,outline=F,width=SampleSize)
     dev.off()
     
     pdf(file=paste(FigureFolder,' LBAR Fishing Mortality Boxplots.pdf',sep=''))
-    boxplot((MCDetails$FishingMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='F',notch=T,outline=F,width=SampleSize)
+    boxplot((MCDetails$FishingMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='F',notch=F,outline=F,width=SampleSize)
     dev.off()
     
     pdf(file=paste(FigureFolder,' LBAR Total Mortality Boxplots.pdf',sep=''))
-    boxplot((MCDetails$TotalMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='Z',notch=T,outline=F, width=SampleSize)
+    boxplot((MCDetails$TotalMortality)~MCDetails$Year,frame=F,xlab='Year',ylab='Z',notch=F,outline=F, width=SampleSize)
     dev.off()
     
     pdf(file=paste(FigureFolder,' LBAR Mean Length Boxplots.pdf',sep=''))
     if(IncludeMPA == 1 & sum(is.na(MCDetails$Lbar_Inside))<length(MCDetails$Lbar_Inside)){
       par(mfrow=c(1,2))
-      boxplot((MCDetails$Lbar_Inside)~MCDetails$Year,frame=F,xlab='Year',ylab='Mean Length',notch=T,main = "Mean Lengths Inside",outline=F, width=SampleSize)
-      boxplot((MCDetails$Lbar_Outside)~MCDetails$Year,frame=F,xlab='Year',ylab='Mean Length',notch=T,main = "Mean Lengths Outside",outline=F, width=SampleSize)
+      boxplot((MCDetails$Lbar_Inside)~MCDetails$Year,frame=F,xlab='Year',ylab='Mean Length',notch=F,main = "Mean Lengths Inside",outline=F, width=SampleSize)
+      boxplot((MCDetails$Lbar_Outside)~MCDetails$Year,frame=F,xlab='Year',ylab='Mean Length',notch=F,main = "Mean Lengths Outside",outline=F, width=SampleSize)
     } else {
-      boxplot((MCDetails$Lbar_Outside)~MCDetails$Year,frame=F,xlab='Year',ylab='Mean Length',notch=T,main = "Mean Lengths Outside",outline=F, width=SampleSize)
+      boxplot((MCDetails$Lbar_Outside)~MCDetails$Year,frame=F,xlab='Year',ylab='Mean Length',notch=F,main = "Mean Lengths Outside",outline=F, width=SampleSize)
     }
     dev.off()
   }
@@ -444,3 +444,4 @@ LBAR<-function(LengthDat,LagLength,Weight,IncludeMPA,ReserveYr,OutsideBoundYr,It
   
   return(list(Output=Output,Details=MCDetails))	
 }
+getwd()
