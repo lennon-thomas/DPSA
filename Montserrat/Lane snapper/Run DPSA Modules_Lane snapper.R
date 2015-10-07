@@ -15,16 +15,19 @@ library(animation)
 library(R2admb)
 library(tidyr)
 library(reshape2)
+library(ggplot2)
 
 sapply(list.files(pattern="[.]R$", path="Functions", full.names=TRUE), source)
+source("SubFunctions.R") #Pull in helper functions for assessment modules
+
 
 # High Level Assessment Options -------------------------------------------
 
-Assessment <- 'Montserrat2'
+Assessment <- 'Lane snapper'
 
 dir.create(Assessment)
 
-NumIterations <- 10
+NumIterations <- 1000
 
 SPRRef <- 0.4
 
@@ -36,7 +39,7 @@ NumberOfSpecies <- 1
 
 ReserveYear <- NA
 
-Assessments <- c('LBSPR')
+Assessments <- c('CatchMSY','LBSPR','LBAR')
 
 MonteCarloNames  <- c('Site','Species','Assessment','Itertation','Metric','Value')
 
@@ -46,7 +49,7 @@ MinSampleSize <- 15
 
 MPAColor <- "#1b9e77"
 
-FishedColor <- "#d95f02"
+FishedColor <- "lightseagreen"
 
 Font <- 'Helvetica'
 
@@ -83,7 +86,7 @@ if ( any(grepl('_MapData',Files)) )
   Locations <- read.csv(paste(Assessment,'/',Files[grepl('_MapData',Files)],sep=''), stringsAsFactors = F)
 }
 
-source(paste("Montserrat2\\Montserrat2-LittleBay-Red hind_ControlFile.R"))
+source(paste("Lane snapper\\Montserrat2-LittleBay-Lane snapper_ControlFile.R"))
 
 ##Lennon commented these out
 # LifeHistory<-read.csv(paste(Assessment,'/',Files[grepl('_LifeHistory',Files)],sep=''), stringsAsFactors = F)
@@ -105,9 +108,9 @@ Fishes <- unique(Fish$CommName)
 # 
 # LHI<- read.csv('data/Prince et al 2014 LHI table.csv',stringsAsFactors=F) 
 # 
-# # LifeHistory<- LifeHistory[,2:dim(LifeHistory)[2]]
+#LifeHistory<- LifeHistory[,2:dim(LifeHistory)[2]]
 # 
-# LifeData<- colnames(LifeHistory)[5:dim(LifeHistory)[2]]
+LifeData<- colnames(LifeHistory)[5:dim(LifeHistory)[2]]
 
 #GFD now stands for generic fishery data since I don't feel like changing it
 
@@ -133,13 +136,13 @@ Counter<- 0
 
 
 # Run Assessments ---------------------------------------------------------
+s=1
 
-
-if (RunAssessments==T)
-{
-  
-  for (s in 1:length(Sites))    
-  {
+# if (RunAssessments==T)
+# {
+#   
+#   for (s in 1:length(Sites))    
+#   {
     
     show(Sites[s])
     
@@ -156,10 +159,10 @@ if (RunAssessments==T)
     
     
 #     Fishes<- subset(TopSpecies,NumSamples>MinSampleSize)$CommName
-    
-    for (f in seq_len(length(Fishes)))
+    f=1
+    # for (f in seq_len(length(Fishes)))
       #     for (f in 9)
-    {
+    #{
       
       show(Fishes[f])
       
@@ -179,10 +182,27 @@ if (RunAssessments==T)
       
       # Prepare Fish Object -------------------------------------------------------------
       s=1
-      #SpeciesLifeHistory<- LifeHistory[LifeHistory$CommName == Species[s],colnames(LifeHistory) %in% LifeData]
-      SpeciesLifeHistory<-LifeHistory
-      #sTaxa<- LifeHistory$Taxa[LifeHistory$CommName == Species[s]]
-      sTaxa<-"Grouper"
+       SpeciesLifeHistory<- LifeHistory[LifeHistory$CommName == Species[s],colnames(LifeHistory) %in% LifeData]
+       SpeciesLifeHistory<-LifeHistory
+#       SpeciesLifeHistory$Linf<-as.numeric(SpeciesLifeHistory$Linf)
+#       SpeciesLifeHistory$vbk<-as.numeric(SpeciesLifeHistory$vbk)
+#       SpeciesLifeHistory$t0<-as.numeric(SpeciesLifeHistory$t0)
+#       SpeciesLifeHistory$LengthError<-as.numeric(SpeciesLifeHistory$LengthError)
+#       SpeciesLifeHistory$WeightA<-as.numeric(SpeciesLifeHistory$WeightA)
+#       SpeciesLifeHistory$WeightB<-as.numeric(SpeciesLifeHistory$WeightB)
+#       SpeciesLifeHistory$M<-as.numeric(SpeciesLifeHistory$M)
+#       SpeciesLifeHistory$MvK<-as.numeric(SpeciesLifeHistory$MvK)
+#       SpeciesLifeHistory$MaxAge<-as.numeric(SpeciesLifeHistory$MaxAge)
+#       SpeciesLifeHistory$MortalityError<-as.numeric(SpeciesLifeHistory$MortalityError)
+#       SpeciesLifeHistory$Mat50<-as.numeric(SpeciesLifeHistory$Mat50)
+#       SpeciesLifeHistory$Mat95<-as.numeric(SpeciesLifeHistory$Mat95)
+#       SpeciesLifeHistory$VBSD<-as.numeric(SpeciesLifeHistory$VBSD)
+#       SpeciesLifeHistory$VBErrorSlope<-as.numeric(SpeciesLifeHistory$VBErrorSlope)
+#       SpeciesLifeHistory$LHITol<-as.numeric(SpeciesLifeHistory$LHITol)
+#       SpeciesLifeHistory$AgeMat50<-as.numeric(SpeciesLifeHistory$AgeMat50)
+#       SpeciesLifeHistory$AgeMat95<-as.numeric(SpeciesLifeHistory$AgeMat95)
+       #sTaxa<- LifeHistory$Taxa[LifeHistory$CommName == Species[s]]
+      sTaxa<-"Surgeonfish"
       HasLifeHistory<- SpeciesLifeHistory[which(is.na(SpeciesLifeHistory)==F)]
       
       HasLife<- colnames(HasLifeHistory)
@@ -196,24 +216,24 @@ if (RunAssessments==T)
 #         Fish[[WhereLife]]<- as.numeric(HasLifeHistory[l])  
 #       }
       
-      Fish$M<- Fish$vbk*Fish$MvK
+      #Fish$M<- Fish$vbk*Fish$MvK
       
-      Fish$MaxAge<- ceiling(-log(0.005)/Fish$M)
+      Fish$MaxAge<- ceiling(-log(0.05)/Fish$M)
       
-      sLHI <- filter(LHI, Taxa %in% sTaxa )
-    
-      ClosestMvK<- which((Fish$MvK-LHI$MeanMvK)^2==min((Fish$MvK-LHI$MeanMvK)^2,na.rm=T))[1]
-      
-      Fish$LengthMatRatio<- LHI$MeanLMATvMLinf[ClosestMvK]
-      
-      Fish$MinMvK<- LHI$MinMvK[ClosestMvK]
-      
-      Fish$MaxMvK<- LHI$MaxMvK[ClosestMvK]
-      
-      Fish$MinLengthMatRatio<- LHI$MinLMATvMLinf[ClosestMvK]
-      
-      Fish$MaxLengthMatRatio<- LHI$MaxLMATvMLinf[ClosestMvK]
-      
+#       sLHI <- filter(LHI, Taxa %in% sTaxa )
+#     
+#       ClosestMvK<- which((Fish$MvK-LHI$MeanMvK)^2==min((Fish$MvK-LHI$MeanMvK)^2,na.rm=T))[1]
+# #       
+#       Fish$LengthMatRatio<- LHI$MeanLMATvMLinf[ClosestMvK]
+#       
+#       Fish$MinMvK<- LHI$MinMvK[ClosestMvK]
+#       
+#       Fish$MaxMvK<- LHI$MaxMvK[ClosestMvK]
+#       
+#       Fish$MinLengthMatRatio<- LHI$MinLMATvMLinf[ClosestMvK]
+#       
+#       Fish$MaxLengthMatRatio<- LHI$MaxLMATvMLinf[ClosestMvK]
+#       
       if (is.na(SpeciesLifeHistory$Mat50) | SpeciesLifeHistory$Mat50>(SpeciesLifeHistory$Linf* SpeciesLifeHistory$LengthMatRatio) ) #Use Prince et al. 2014 LHI
       {
         Fish$Mat50<- Fish$Linf*Fish$LengthMatRatio
@@ -227,8 +247,7 @@ if (RunAssessments==T)
         
         Fish$Mat95<- as.numeric(1.1*Fish$Mat50)
       }
-      
-      Fish$Mat95<- as.numeric(1.1*Fish$Mat50)
+  
       
 #       ReformData<- FormatCCFRPData(iGFD)
       
@@ -259,12 +278,14 @@ if (RunAssessments==T)
       
       PlotLifeHistory()
       
-      Theme<- theme(legend.position='top',plot.background=element_rect(color=NA),
-                    rect=element_rect(fill='transparent',color=NA)
-                    ,text=element_text(size=12,family=Font,color=FontColor),
-                    axis.text.x=element_text(color=FontColor),
-                    axis.text.y=element_text(color=FontColor),legend.key.size=unit(1,'cm'))
-      
+      Theme<- theme(legend.position='bottom',plot.background=element_rect(color="white"),
+                    rect=element_rect(fill='transparent',color=NA),
+                    text=element_text(size=12,family=Font,color=FontColor),
+                    axis.text.x=element_text(color=FontColor), axis.text.y=element_text(color=FontColor),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.border = element_blank(),
+                    panel.background = element_blank(),strip.background = element_rect(colour="black", fill="white"))
+   
       if (exists('LengthData')) {PlotLengthData(LengthData,FigureFolder,Fish,Species,Sites[s],Theme)}
 
         
@@ -275,140 +296,140 @@ if (RunAssessments==T)
       if (exists('CatchData')) {PlotCatchData(CatchData,FigureFolder)}
       
 #       MapCCFRP(ReformData)
+      
       a=1
-      
       Fish$LHITol<- 0.99
-      
-      for (a in 1:length(Assessments)) #Loop over possible assessments, store in Assessment results. Many assessments have more detailed outputs than can also be accessed 
-      {
+#       
+#       for (a in 1:length(Assessments)) #Loop over possible assessments, store in Assessment results. Many assessments have more detailed outputs than can also be accessed 
+#       {
         
         Counter<- Counter+1
-        if (Assessments[a]=='LBAR') #Run LBAR assessment
-        {
-          
+#         if (Assessments[a]=='LBAR') #Run LBAR assessment
+#         {
+#           
           SampleCheck<- CheckLengthSampleSize(LengthData)        
-          
-          if (SampleCheck$YearsWithEnoughData>0)
-          {
+#           
+#           if (SampleCheck$YearsWithEnoughData>0)
+#           {
             
             
-            Temp<- LBAR(SampleCheck$ParedData,LagLength=1,Weight=0.2,IncludeMPA=0,ReserveYr=ReserveYear,OutsideBoundYr=NA,Iterations=NumIterations,
-                        BootStrap=1,LifeError=1,Lc=NA)$Output		
+            Temp<- LBAR(SampleCheck$ParedData,LagLength=1,Weight=1,IncludeMPA=0,ReserveYr=NA,OutsideBoundYr=NA,Iterations=1,
+                        BootStrap=0,LifeError=0,Lc=NA)$Output		
             
             StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
               rename(Site=Sites.s.,Assessment=Assessments.a.)
             
             AssessmentResults[[Counter]]<-StoreAssess
-          }
-        }
-        
-        if (Assessments[a]=='CatchCurve') #Run Catch Curve analysis
-        {
+#           }
+#         }
+#         
+#         if (Assessments[a]=='CatchCurve') #Run Catch Curve analysis
+#         {
           
+#           SampleCheck<- CheckLengthSampleSize(LengthData)        
+#           
+#           if (SampleCheck$YearsWithEnoughData>0)
+#           {
+#             
+#             
+#             Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight=0,WeightedRegression=1,
+#                               ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,GroupMPA=1,Iterations=NumIterations,BootStrap=1,LifeError=1,HistInterval=1)
+#             
+#             MonteCarlo<- Temp$Details
+#             
+#             Temp<- Temp$Output
+#             
+#             StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+#               rename(Site=Sites.s.,Assessment=Assessments.a.)
+#             
+#             StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','FvM')],stringsAsFactors=F) %>%
+#               rename(Site=Sites.s.,Assessment=Assessments.a.,Value=FvM) %>%
+#               mutate(Metric='F/M (CC)')
+#             
+#             MonteResults[[Counter]]<- StoreMonte
+#             
+#             AssessmentResults[[Counter]]<-StoreAssess
+#             
+#             
+#           }
+#         }
+#         
+#         
+#         if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
+#         {
+#           
+#           Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)
+#           
+#           MonteCarlo<- Temp$Details
+#           
+#           Temp<- Temp$Output
+#           
+#           StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','DensityRatio')],stringsAsFactors=F) %>%
+#             rename(Site=Sites.s.,Assessment=Assessments.a.,Value=DensityRatio) %>%
+#             mutate(Metric='DensityRatio')
+#           
+#           MonteResults[[Counter]]<- StoreMonte
+#           
+#           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+#             rename(Site=Sites.s.,Assessment=Assessments.a.)
+#           
+#           AssessmentResults[[Counter]]<-StoreAssess
+#         }
+#         
+#         if (Assessments[a]=='CPUERatio') #Run density ratio analysis 
+#         {
+#           
+#           Temp<- CPUERatio(CPUEData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)
+#           
+#           MonteCarlo<- Temp$Details
+#           
+#           Temp<- Temp$Output
+#           
+#           StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','CPUERatio')],stringsAsFactors=F) %>%
+#             rename(Site=Sites.s.,Assessment=Assessments.a.,Value=CPUERatio) %>%
+#             mutate(Metric='CPUERatio')
+#           
+#           MonteResults[[Counter]]<- StoreMonte
+#           
+#           
+#           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+#             rename(Site=Sites.s.,Assessment=Assessments.a.)
+#           
+#           AssessmentResults[[Counter]]<-StoreAssess
+#         }
+#         
+#         if (Assessments[a]=='CatchMSY')
+#         {
+            Counter<-Counter+1
+           Temp2<- CatchMSY(CatchData,1000,0.05,0,0,1,0,0,1,NA,c(0.75,0.99),NA,NA,c(0.25,0.65))
+           
+           Temp<- Temp2$Output
+        
+          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+            rename(Site=Sites.s.,Assessment=Assessments.a.)
+#           
+#           AssessmentResults[[Counter]]<-StoreAssess
+#           
+#         }
+#         
+#         if (Assessments[a]=='LBSPR') #Run LBSPR Assessment
+#         {
+          Counter<-Counter+1
           SampleCheck<- CheckLengthSampleSize(LengthData)        
           
-          if (SampleCheck$YearsWithEnoughData>0)
-          {
-            
-            
-            Temp<- CatchCurve(SampleCheck$ParedData,CatchCurveWeight=0,WeightedRegression=1,
-                              ReserveYr=ReserveYear,OutsideBoundYr=NA,ManualM=0,GroupMPA=1,Iterations=NumIterations,BootStrap=1,LifeError=1,HistInterval=1)
-            
-            MonteCarlo<- Temp$Details
-            
-            Temp<- Temp$Output
-            
-            StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
-              rename(Site=Sites.s.,Assessment=Assessments.a.)
-            
-            StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','FvM')],stringsAsFactors=F) %>%
-              rename(Site=Sites.s.,Assessment=Assessments.a.,Value=FvM) %>%
-              mutate(Metric='F/M (CC)')
-            
-            MonteResults[[Counter]]<- StoreMonte
-            
-            AssessmentResults[[Counter]]<-StoreAssess
-            
-            
-          }
-        }
-        
-        
-        if (Assessments[a]=='DensityRatio') #Run density ratio analysis 
-        {
-          
-          Temp<- DensityRatio(DensityData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)
-          
-          MonteCarlo<- Temp$Details
-          
-          Temp<- Temp$Output
-          
-          StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','DensityRatio')],stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.,Value=DensityRatio) %>%
-            mutate(Metric='DensityRatio')
-          
-          MonteResults[[Counter]]<- StoreMonte
-          
-          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.)
-          
-          AssessmentResults[[Counter]]<-StoreAssess
-        }
-        
-        if (Assessments[a]=='CPUERatio') #Run density ratio analysis 
-        {
-          
-          Temp<- CPUERatio(CPUEData,LagLength=1,Weight=1,Form='Biomass',Iterations=NumIterations,BootStrap=1)
-          
-          MonteCarlo<- Temp$Details
-          
-          Temp<- Temp$Output
-          
-          StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','CPUERatio')],stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.,Value=CPUERatio) %>%
-            mutate(Metric='CPUERatio')
-          
-          MonteResults[[Counter]]<- StoreMonte
-          
-          
-          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.)
-          
-          AssessmentResults[[Counter]]<-StoreAssess
-        }
-        
-        if (Assessments[a]=='CatchMSY')
-        {
-          Temp2<- CatchMSY(CatchData,1000,0.05,0,0,1,0,0,1,NA,c(0.75,0.99),NA,NA,c(0.25,0.65))
-          
-          Temp<- Temp2$Output
-          
-          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.)
-          
-          AssessmentResults[[Counter]]<-StoreAssess
-          
-        }
-        
-        if (Assessments[a]=='LBSPR') #Run LBSPR Assessment
-        {
-          
-          SampleCheck<- CheckLengthSampleSize(LengthData)        
-          
-          if (SampleCheck$YearsWithEnoughData>0)
-          {
+#           if (SampleCheck$YearsWithEnoughData>0)
+#           {
             
             LengthQuantile<- quantile(SampleCheck$ParedData$Length,na.rm=T)
-            
-            Counter<-1
+         
             #           Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=1,BootStrap=1,
             #                         LifeError=1,LengthBins=1,ReserveYear=ReserveYear,SL50Min=LengthQuantile[1],
             #                         SL50Max=LengthQuantile[2],DeltaMin=NA,DeltaMax=NA,IncludeReserve=TRUE)
             ##must be in dpsa directory
-            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=10,BootStrap=1,
+            Temp2<- LBSPR(SampleCheck$ParedData,EstimateM=0,Iterations=100,BootStrap=1,
                           LifeError=0,LengthBins=1,ReserveYear=NA,SL50Min=LengthQuantile[1],
                           SL50Max=LengthQuantile[2],DeltaMin=0.01,DeltaMax=.5*Fish$Linf,IncludeReserve=FALSE)
-            
+          
             MonteCarlo<- Temp2$Details
             
             StoreMonte<- data.frame(Species,Sites[s],Assessments[a],MonteCarlo[,c('Iteration','Year','FvM','SPR')],stringsAsFactors=F) %>%
@@ -426,45 +447,46 @@ if (RunAssessments==T)
               rename(Site=Sites.s.,Assessment=Assessments.a.)
             
             AssessmentResults[[Counter]]<-StoreAssess
-          }
-        }
-        
-        
-        if (Assessments[a]=='DBSRA') #Run DBSRA Assessment
-        {
-          DCAC.start.yr <- CatchData$Year[1] #start of the catch period
-          DCAC.end.yr<- CatchData$Year[length(CatchData$Year)] #end of the catch period
-          delta.yr<- CatchData$Year[length(CatchData$Year)] #Year that current depletion is fit to
-          DBSRA.OFL.yr<- CatchData$Year[length(CatchData$Year)] #Year to calculate DBSRA OFL outputs
-          FMSYtoMratio <- 0.8 #ratio of Fmsy to M
-          SD.FMSYtoMratio<- 0.05
-          Delta<- 0.7
-          SD.Delta<- 0.1
-          DeltaLowerBound<- 0.5
-          DeltaUpperBound<- 0.9
-          BMSYtoB0ratio <- 0.3
-          SD.BMSYtoB0ratio<- 0.1
-          BMSYtoB0LowerBound<- 0.2
-          BMSYtoB0UpperBound<- 0.5
-          CatchInterp<-1
-          NIter<- 500	
-          
-          
-          Temp2<- DBSRA(CatchData, DCAC.start.yr, DCAC.end.yr, delta.yr, DBSRA.OFL.yr, FMSYtoMratio, SD.FMSYtoMratio, Delta, SD.Delta, DeltaLowerBound, DeltaUpperBound, BMSYtoB0ratio, SD.BMSYtoB0ratio, BMSYtoB0LowerBound, BMSYtoB0UpperBound, CatchInterp, NIter)
-          
-          Temp<- Temp2$Output
-          
-          StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
-            rename(Site=Sites.s.,Assessment=Assessments.a.)
-          
-          AssessmentResults[[Counter]]<-StoreAssess
-        }
-        
-        
-        show(paste('Finished ',Assessments[a],'-',round(100*a/length(Assessments),2),'% Done',sep=''))
-        
-      }
-      
+#           }
+#         }
+#         
+#         
+#         if (Assessments[a]=='DBSRA') #Run DBSRA Assessment
+#         {
+#           DCAC.start.yr <- CatchData$Year[1] #start of the catch period
+#           DCAC.end.yr<- CatchData$Year[length(CatchData$Year)] #end of the catch period
+#           delta.yr<- CatchData$Year[length(CatchData$Year)] #Year that current depletion is fit to
+#           DBSRA.OFL.yr<- CatchData$Year[length(CatchData$Year)] #Year to calculate DBSRA OFL outputs
+#           FMSYtoMratio <- 0.8 #ratio of Fmsy to M
+#           SD.FMSYtoMratio<- 0.05
+#           Delta<- 0.7
+#           SD.Delta<- 0.1
+#           DeltaLowerBound<- 0.5
+#           DeltaUpperBound<- 0.9
+#           BMSYtoB0ratio <- 0.3
+#           SD.BMSYtoB0ratio<- 0.1
+#           BMSYtoB0LowerBound<- 0.2
+#           BMSYtoB0UpperBound<- 0.5
+#           CatchInterp<-1
+#           NIter<- 500	
+#           
+#           
+#           Temp2<- DBSRA(CatchData, DCAC.start.yr, DCAC.end.yr, delta.yr, DBSRA.OFL.yr, FMSYtoMratio, SD.FMSYtoMratio, Delta, SD.Delta, DeltaLowerBound, DeltaUpperBound, BMSYtoB0ratio, SD.BMSYtoB0ratio, BMSYtoB0LowerBound, BMSYtoB0UpperBound, CatchInterp, NIter)
+#           
+#           Temp<- Temp2$Output
+#           
+#           StoreAssess<- data.frame(Species,Sites[s],Assessments[a],Temp,stringsAsFactors=F) %>%
+#             rename(Site=Sites.s.,Assessment=Assessments.a.)
+#           
+#           AssessmentResults[[Counter]]<-StoreAssess
+#         }
+#         
+#         
+#         show(paste('Finished ',Assessments[a],'-',round(100*a/length(Assessments),2),'% Done',sep=''))
+#         
+#       }
+            Site<-"All"
+#       
       CurrentResults<- ldply(AssessmentResults) %>% subset(Species==Fishes[f] & Site==Sites[s])
       
       if (any(CurrentResults$Assessment=='CatchCurve') & any(CurrentResults$Assessment=='CPUERatio') 
@@ -481,11 +503,11 @@ if (RunAssessments==T)
         
       }
       save.image(file=paste(ResultFolder,AssessmentName,'_Settings.RData',sep='')) #Save settings used to produce current results
-      write.csv(file=paste(ResultFolder,AssessmentName,'_Results.csv',sep=''),CurrentResults) #Save current results
-      
-    } #Close species  (f) loop
-  } #Close sites (s) loop
-  
+      write.csv(file=paste(ResultFolder,AssessmentName,'_Results2.csv',sep=''),CurrentResults) #Save current results
+#       
+#     } #Close species  (f) loop
+#   } #Close sites (s) loop
+#   
   
   save(file=paste(Assessment,'/Assessment Results.Rdata',sep=''),AssessmentResults,MonteResults)
   
@@ -504,7 +526,7 @@ SAData<- read.csv('CCFRP Data/CCFRP Stock Assessment Values.csv')
 SAData$Assessment<- 'Stock Assessment'
 
 Ramp<- 'RdYlGn'
-
+cL
 LineKeynoteTheme<- theme(plot.background=element_rect(color=NA),rect=element_rect(fill='transparent',color=NA)
                          ,text=element_text(size=16,family=Font,color=FontColor))
 

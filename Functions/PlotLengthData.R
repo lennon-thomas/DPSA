@@ -1,7 +1,7 @@
 PlotLengthData<- function(LengthDat,FigureFolder,Fish,Species,Site,Theme)
 {
-#   LengthDat<- LengthData
-  
+   LengthDat<- LengthData
+   Site<-"All"
   LengthDat<- subset(LengthDat,is.na(Length)==F & Length>0)
   
   LengthDat$SiteType[LengthDat$MPA==0]<- 'Fished'
@@ -14,7 +14,7 @@ PlotLengthData<- function(LengthDat,FigureFolder,Fish,Species,Site,Theme)
   +scale_fill_manual(name='',values=c(FishedColor,MPAColor))
   +geom_vline(xintercept=Fish$Mat50,linetype='longdash')+
     geom_vline(xintercept=Fish$Linf,linetype='longdash',color='red2')+
-    facet_wrap(~Year,as.table=F)+ggtitle(paste(Species,Site,sep='-'))+Theme)
+  facet_wrap(~Year,as.table=F)+ggtitle(paste(Species,sep='\nn = ',length(LengthDat$Length)))+Theme+xlab("Length (cm)")+ylab("Frequency"))
   
   print(LengthDist)
   
@@ -23,7 +23,7 @@ PlotLengthData<- function(LengthDat,FigureFolder,Fish,Species,Site,Theme)
 #       +scale_fill_manual(name='',values=c(FishedColor,MPAColor))
 #       +geom_vline(xintercept=Fish$Mat50,linetype='longdash')+
 #         geom_vline(xintercept=Fish$Linf,linetype='longdash',color='red2')+
-#         facet_wrap(~Year,as.table=F)+ggtitle(paste(Species,Site,sep='-')))
+#         facet_wrap(~Year,as.table=F)+ggtitle(paste(Species)))
 # dev.off()
 
 LengthBox<- (ggplot(data=LengthDat,aes(factor(Year),Length,fill=SiteType))
